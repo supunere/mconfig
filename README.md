@@ -35,8 +35,17 @@ CPU・メモリ・ストレージの14プリセットと16割り当てを含み�
 
 ```powershell
 dotnet build src/mconfig.slnx -c Release
-dotnet publish src/Mconfig.App/Mconfig.App.csproj -c Release -r win-x64 --self-contained true -o artifacts/win-x64
+dotnet publish src/Mconfig.App/Mconfig.App.csproj -c Release -r win-x64 --self-contained true -p:Version=0.1.0 -p:RuntimeFrameworkVersion=10.0.12 -o artifacts/win-x64
 ```
+
+配布ZIPの作成と同梱文書は[RELEASE.md](RELEASE.md)を参照してください。ランタイム版を変える場合は、依存ライセンス文書も確認してください。
+
+## バックアップと復元
+
+アプリを終了してから、ワークスペースのフォルダー全体を別の媒体へコピーしてください。設定データだけでなく、履歴を含む隠しフォルダーも保存します。同じディスク上の履歴だけでは、ディスク故障への備えになりません。
+
+復元するときは、バックアップ一式を別の書き込み可能なフォルダーへコピーし、`--workspace` でその絶対パスを指定して起動します。元のワークスペースは上書きせず、設定値と履歴が読み込めることを確認してください。
+出力した設定データZIPはワークスペース全体のバックアップとは別に保管してください。
 
 ## ライセンス
 
