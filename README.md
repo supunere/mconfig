@@ -38,8 +38,6 @@ dotnet build src/mconfig.slnx -c Release
 dotnet publish src/Mconfig.App/Mconfig.App.csproj -c Release -r win-x64 --self-contained true -o artifacts/win-x64
 ```
 
-製品コードの正本はこのリポジトリです。開発用テストと仕様書は非公開の開発リポジトリで管理しています。
-
 ## ライセンス
 
 mconfigのコードとサンプルはMIT Licenseです。依存ライブラリと同梱ランタイムの条件はTHIRD-PARTY-NOTICES.mdを参照してください。
