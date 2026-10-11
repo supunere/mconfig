@@ -84,6 +84,8 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
             if (_impactEmpty is { } empty)
             {
                 e.Item = new ListViewItem(empty) { ForeColor = SystemColors.GrayText };
+                // VirtualModeでは空状態の説明行にも全列分のサブ項目が必要。
+                while (e.Item.SubItems.Count < _changes.Columns.Count) e.Item.SubItems.Add("");
                 return;
             }
             AssignmentChangeDisplay change = _impactRows[e.ItemIndex];
@@ -153,11 +155,13 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
             _categoryList.Columns[0].Width = width * 2 / 5;
             _categoryList.Columns[1].Width = width * 3 / 5;
         };
-        Load += (_, _) =>
+        // 親画面のDockレイアウト後に初期幅を適用する。
+        Load += (_, _) => BeginInvoke(() =>
         {
+            if (IsDisposed) return;
             outer.SplitterDistance = Math.Min(LogicalToDeviceUnits(260), Math.Max(outer.Panel1MinSize, outer.Width / 3));
             right.SplitterDistance = Math.Max(right.Panel1MinSize, right.Height * 11 / 20);
-        };
+        });
 
         _categoryList.SelectedIndexChanged += (_, _) =>
         {
