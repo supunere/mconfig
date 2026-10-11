@@ -131,8 +131,14 @@ internal sealed record ExportJournal(
     {
         List<PendingExport> exports = [];
         List<PendingExportProblem> problems = [];
+        bool recoveryPathFound = false;
         try
         {
+            // Linux では通常ファイルの列挙も DirectoryNotFoundException になるため、不在と区別する。
+            FileAttributes attributes = File.GetAttributes(layout.RecoveryDirectory);
+            recoveryPathFound = true;
+            if ((attributes & FileAttributes.Directory) == 0)
+                throw new IOException("The recovery path is not a directory.");
             // Directory.Exists/File.Exists はアクセス失敗も false にするので、列挙・読込の失敗を捕捉する。
             foreach (string directory in Directory.EnumerateDirectories(layout.RecoveryDirectory).Order(StringComparer.Ordinal))
             {
@@ -161,7 +167,8 @@ internal sealed record ExportJournal(
                 }
             }
         }
-        catch (DirectoryNotFoundException) { }
+        catch (FileNotFoundException) when (!recoveryPathFound) { }
+        catch (DirectoryNotFoundException) when (!recoveryPathFound) { }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             problems.Add(new PendingExportProblem(null, WorkspaceLayout.RecoveryDirectoryName, PendingExportProblemKind.ListUnavailable));
