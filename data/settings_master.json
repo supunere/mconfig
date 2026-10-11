@@ -1,0 +1,338 @@
+{
+  "cpu": {
+    "presets": [
+      {
+        "name": "CPU・基本構成",
+        "groups": {
+          "processor": {
+            "mainCpu": {
+              "cores": 4,
+              "threads": 8,
+              "baseClockGHz": 2.8
+            }
+          }
+        }
+      },
+      {
+        "name": "CPU・標準構成",
+        "groups": {
+          "processor": {
+            "mainCpu": {
+              "cores": 6,
+              "threads": 12,
+              "baseClockGHz": 3.0
+            }
+          }
+        }
+      },
+      {
+        "name": "CPU・高性能構成",
+        "groups": {
+          "processor": {
+            "mainCpu": {
+              "cores": 8,
+              "threads": 16,
+              "baseClockGHz": 3.4
+            }
+          }
+        }
+      },
+      {
+        "name": "CPU・制作向け構成",
+        "groups": {
+          "processor": {
+            "mainCpu": {
+              "cores": 12,
+              "threads": 24,
+              "baseClockGHz": 3.0
+            }
+          }
+        }
+      },
+      {
+        "name": "CPU・モバイル基本構成",
+        "groups": {
+          "processor": {
+            "mainCpu": {
+              "cores": 4,
+              "threads": 8,
+              "baseClockGHz": 1.8
+            }
+          }
+        }
+      },
+      {
+        "name": "CPU・モバイル標準構成",
+        "groups": {
+          "processor": {
+            "mainCpu": {
+              "cores": 6,
+              "threads": 12,
+              "baseClockGHz": 2.2
+            }
+          }
+        }
+      },
+      {
+        "name": "CPU・モバイル高性能構成",
+        "groups": {
+          "processor": {
+            "mainCpu": {
+              "cores": 8,
+              "threads": 16,
+              "baseClockGHz": 2.4
+            }
+          }
+        }
+      }
+    ],
+    "assignments": [
+      {
+        "specs": {
+          "usage": "コンテンツ制作",
+          "formFactor": "タワー",
+          "productTier": "ハイエンド"
+        },
+        "preset": "CPU・制作向け構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "ノート",
+          "productTier": "エントリー"
+        },
+        "preset": "CPU・モバイル基本構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "ノート",
+          "productTier": "スタンダード"
+        },
+        "preset": "CPU・モバイル標準構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "ノート",
+          "productTier": "ハイエンド"
+        },
+        "preset": "CPU・モバイル高性能構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "any",
+          "productTier": "ハイエンド"
+        },
+        "preset": "CPU・高性能構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "any",
+          "productTier": "スタンダード"
+        },
+        "preset": "CPU・標準構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "any",
+          "productTier": "any"
+        },
+        "preset": "CPU・基本構成"
+      }
+    ]
+  },
+  "memory": {
+    "presets": [
+      {
+        "name": "メモリ・8GB構成",
+        "groups": {
+          "modules": {
+            "moduleA": {
+              "capacityGB": 4,
+              "transferRateMTs": 3200
+            },
+            "moduleB": {
+              "capacityGB": 4,
+              "transferRateMTs": 3200
+            }
+          }
+        }
+      },
+      {
+        "name": "メモリ・16GB構成",
+        "groups": {
+          "modules": {
+            "moduleA": {
+              "capacityGB": 8,
+              "transferRateMTs": 3200
+            },
+            "moduleB": {
+              "capacityGB": 8,
+              "transferRateMTs": 3200
+            }
+          }
+        }
+      },
+      {
+        "name": "メモリ・32GB構成",
+        "groups": {
+          "modules": {
+            "moduleA": {
+              "capacityGB": 16,
+              "transferRateMTs": 5600
+            },
+            "moduleB": {
+              "capacityGB": 16,
+              "transferRateMTs": 5600
+            }
+          }
+        }
+      },
+      {
+        "name": "メモリ・64GB構成",
+        "groups": {
+          "modules": {
+            "moduleA": {
+              "capacityGB": 32,
+              "transferRateMTs": 5600
+            },
+            "moduleB": {
+              "capacityGB": 32,
+              "transferRateMTs": 5600
+            }
+          }
+        }
+      }
+    ],
+    "assignments": [
+      {
+        "specs": {
+          "usage": "コンテンツ制作",
+          "formFactor": "タワー",
+          "productTier": "ハイエンド"
+        },
+        "preset": "メモリ・64GB構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "any",
+          "productTier": "ハイエンド"
+        },
+        "preset": "メモリ・32GB構成"
+      },
+      {
+        "specs": {
+          "usage": "コンテンツ制作",
+          "formFactor": "any",
+          "productTier": "スタンダード"
+        },
+        "preset": "メモリ・32GB構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "any",
+          "productTier": "スタンダード"
+        },
+        "preset": "メモリ・16GB構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "any",
+          "productTier": "any"
+        },
+        "preset": "メモリ・8GB構成"
+      }
+    ]
+  },
+  "storage": {
+    "presets": [
+      {
+        "name": "ストレージ・シングルドライブ構成",
+        "groups": {
+          "systemDrive": {
+            "drive": {
+              "capacityPerDriveGB": 512,
+              "count": 1
+            }
+          },
+          "dataDrive": null
+        }
+      },
+      {
+        "name": "ストレージ・デュアルドライブ構成",
+        "groups": {
+          "systemDrive": {
+            "drive": {
+              "capacityPerDriveGB": 512,
+              "count": 1
+            }
+          },
+          "dataDrive": {
+            "drive": {
+              "capacityPerDriveGB": 1000,
+              "count": 1
+            }
+          }
+        }
+      },
+      {
+        "name": "ストレージ・大容量構成",
+        "groups": {
+          "systemDrive": {
+            "drive": {
+              "capacityPerDriveGB": 1000,
+              "count": 1
+            }
+          },
+          "dataDrive": {
+            "drive": {
+              "capacityPerDriveGB": 2000,
+              "count": 1
+            }
+          }
+        }
+      }
+    ],
+    "assignments": [
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "any",
+          "productTier": "ハイエンド"
+        },
+        "preset": "ストレージ・大容量構成"
+      },
+      {
+        "specs": {
+          "usage": "コンテンツ制作",
+          "formFactor": "any",
+          "productTier": "スタンダード"
+        },
+        "preset": "ストレージ・デュアルドライブ構成"
+      },
+      {
+        "specs": {
+          "usage": "ゲーミング",
+          "formFactor": "any",
+          "productTier": "スタンダード"
+        },
+        "preset": "ストレージ・デュアルドライブ構成"
+      },
+      {
+        "specs": {
+          "usage": "any",
+          "formFactor": "any",
+          "productTier": "any"
+        },
+        "preset": "ストレージ・シングルドライブ構成"
+      }
+    ]
+  }
+}

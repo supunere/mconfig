@@ -1,0 +1,40 @@
+{
+  "specs": [
+    {
+      "key": "usage",
+      "displayName": {
+        "ja": "用途",
+        "en": "Usage"
+      },
+      "values": [
+        "オフィス",
+        "ゲーミング",
+        "コンテンツ制作"
+      ]
+    },
+    {
+      "key": "formFactor",
+      "displayName": {
+        "ja": "筐体タイプ",
+        "en": "Form factor"
+      },
+      "values": [
+        "タワー",
+        "省スペース",
+        "ノート"
+      ]
+    },
+    {
+      "key": "productTier",
+      "displayName": {
+        "ja": "製品グレード",
+        "en": "Product tier"
+      },
+      "values": [
+        "エントリー",
+        "スタンダード",
+        "ハイエンド"
+      ]
+    }
+  ]
+}

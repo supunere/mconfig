@@ -1,0 +1,49 @@
+{
+  "name": "cpu",
+  "displayName": {
+    "ja": "CPU",
+    "en": "CPU"
+  },
+  "groups": [
+    {
+      "key": "processor",
+      "displayName": {
+        "ja": "プロセッサー",
+        "en": "Processor"
+      },
+      "rows": [
+        {
+          "key": "mainCpu",
+          "displayName": {
+            "ja": "メインCPU",
+            "en": "Main CPU"
+          }
+        }
+      ],
+      "columns": [
+        {
+          "key": "cores",
+          "displayName": {
+            "ja": "コア数",
+            "en": "Core count"
+          }
+        },
+        {
+          "key": "threads",
+          "displayName": {
+            "ja": "スレッド数",
+            "en": "Thread count"
+          }
+        },
+        {
+          "key": "baseClockGHz",
+          "displayName": {
+            "ja": "ベースクロック",
+            "en": "Base clock"
+          },
+          "unit": "GHz"
+        }
+      ]
+    }
+  ]
+}

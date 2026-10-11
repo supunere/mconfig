@@ -1,0 +1,75 @@
+{
+  "name": "storage",
+  "displayName": {
+    "ja": "ストレージ",
+    "en": "Storage"
+  },
+  "groups": [
+    {
+      "key": "systemDrive",
+      "displayName": {
+        "ja": "システム用ドライブ",
+        "en": "System drive"
+      },
+      "rows": [
+        {
+          "key": "drive",
+          "displayName": {
+            "ja": "内蔵ドライブ",
+            "en": "Internal drive"
+          }
+        }
+      ],
+      "columns": [
+        {
+          "key": "capacityPerDriveGB",
+          "displayName": {
+            "ja": "1台あたり容量",
+            "en": "Capacity per drive"
+          },
+          "unit": "GB"
+        },
+        {
+          "key": "count",
+          "displayName": {
+            "ja": "台数",
+            "en": "Drive count"
+          }
+        }
+      ]
+    },
+    {
+      "key": "dataDrive",
+      "displayName": {
+        "ja": "データ用ドライブ",
+        "en": "Data drive"
+      },
+      "rows": [
+        {
+          "key": "drive",
+          "displayName": {
+            "ja": "内蔵ドライブ",
+            "en": "Internal drive"
+          }
+        }
+      ],
+      "columns": [
+        {
+          "key": "capacityPerDriveGB",
+          "displayName": {
+            "ja": "1台あたり容量",
+            "en": "Capacity per drive"
+          },
+          "unit": "GB"
+        },
+        {
+          "key": "count",
+          "displayName": {
+            "ja": "台数",
+            "en": "Drive count"
+          }
+        }
+      ]
+    }
+  ]
+}

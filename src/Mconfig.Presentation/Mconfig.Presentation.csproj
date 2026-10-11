@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    画面の Presenter・View 契約・表示モデル（仕様01 ARC-003）。WinForms に依存しないので、
+    App（net10.0-windows）と分けて Linux でも Presenter を試験できるようにする。
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mconfig.Application\Mconfig.Application.csproj" />
+    <ProjectReference Include="..\Mconfig.Domain\Mconfig.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

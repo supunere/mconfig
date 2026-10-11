@@ -1,0 +1,50 @@
+{
+  "name": "memory",
+  "displayName": {
+    "ja": "メモリ",
+    "en": "Memory"
+  },
+  "groups": [
+    {
+      "key": "modules",
+      "displayName": {
+        "ja": "メモリモジュール",
+        "en": "Memory modules"
+      },
+      "rows": [
+        {
+          "key": "moduleA",
+          "displayName": {
+            "ja": "モジュールA",
+            "en": "Module A"
+          }
+        },
+        {
+          "key": "moduleB",
+          "displayName": {
+            "ja": "モジュールB",
+            "en": "Module B"
+          }
+        }
+      ],
+      "columns": [
+        {
+          "key": "capacityGB",
+          "displayName": {
+            "ja": "容量",
+            "en": "Capacity"
+          },
+          "unit": "GB"
+        },
+        {
+          "key": "transferRateMTs",
+          "displayName": {
+            "ja": "転送速度",
+            "en": "Transfer rate"
+          },
+          "unit": "MT/s"
+        }
+      ]
+    }
+  ]
+}

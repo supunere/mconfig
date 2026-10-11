@@ -1,0 +1,11 @@
+# Release build
+
+Windows 11 x64向けの自己完結型ビルドは、.NETランタイムの追加インストールなしで起動できます。
+ZIP内のすべてのファイルとdataフォルダーを一緒に展開してください。
+
+```powershell
+dotnet publish src/Mconfig.App/Mconfig.App.csproj -c Release -r win-x64 --self-contained true -p:Version=0.1.0 -o artifacts/win-x64
+```
+
+配布にはLICENSE、THIRD-PARTY-NOTICES.md、README.md、RELEASE.mdと同梱サンプルを含めてください。
+依存パッケージやランタイムのバージョンを更新したときは、著作権表示とライセンス本文も更新してください。

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Mconfig.App/Mconfig.App.csproj" />
+  <Project Path="Mconfig.Application/Mconfig.Application.csproj" />
+  <Project Path="Mconfig.Domain/Mconfig.Domain.csproj" />
+  <Project Path="Mconfig.Infrastructure/Mconfig.Infrastructure.csproj" />
+  <Project Path="Mconfig.Presentation/Mconfig.Presentation.csproj" />
+</Solution>

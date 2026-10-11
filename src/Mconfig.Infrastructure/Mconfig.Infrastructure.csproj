@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mconfig.Application\Mconfig.Application.csproj" />
+    <ProjectReference Include="..\Mconfig.Domain\Mconfig.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" Version="0.30.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Serilog" Version="4.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Mconfig.Tests" />
+    <InternalsVisibleTo Include="Mconfig.App.Tests" />
+    <!-- 停止試験の子プロセス（tools/Mconfig.FaultHost）が故障注入の段階を使う -->
+    <InternalsVisibleTo Include="Mconfig.FaultHost" />
+  </ItemGroup>
+
+</Project>
