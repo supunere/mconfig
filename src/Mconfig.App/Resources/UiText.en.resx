@@ -4,7 +4,7 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <data name="App_Title" xml:space="preserve"><value>mconfig (new screens, view only)</value></data>
+  <data name="App_Title" xml:space="preserve"><value>mconfig</value></data>
   <data name="Menu_View" xml:space="preserve"><value>&amp;View</value></data>
   <data name="Menu_Language" xml:space="preserve"><value>&amp;Language</value></data>
   <data name="Menu_Japanese" xml:space="preserve"><value>日本語 (Japanese)</value></data>

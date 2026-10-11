@@ -65,6 +65,8 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         Font = UiAppearance.BodyFont;
         BackColor = UiAppearance.Surface;
         UiAppearance.ApplyGrid(_grid);
+        // 選択中の説明や長いプリセット名で見出しが値の領域を占有しないようにする。
+        _grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
         foreach (Button button in new[] { _hide, _add, _duplicate, _rename, _delete }) UiAppearance.ApplyButton(button);
         // 上端のバー（上下の境界）: どのカテゴリの、どの組み合わせの値か。右端に「値を隠す」
         TableLayoutPanel caption = new() { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2, Padding = new Padding(4, 8, 4, 4) };
@@ -246,6 +248,7 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
                     _grid.Columns[FixedColumns + i].Name = $"preset_{preset.Name}";
                     _grid.Columns[FixedColumns + i].HeaderText = header;
                 }
+                _grid.Columns[FixedColumns + i].ToolTipText = header;
                 if (!fitWidths && widths.TryGetValue(preset.Name, out int width)) _grid.Columns[FixedColumns + i].Width = width;
             }
 
@@ -282,7 +285,9 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
             if (current is { } position && position.row < _grid.Rows.Count && position.column < _grid.Columns.Count)
             {
                 _grid.CurrentCell = _grid.Rows[position.row].Cells[position.column];
-                if (firstRow >= 0 && firstRow < _grid.Rows.Count) _grid.FirstDisplayedScrollingRowIndex = firstRow;
+                // 分割ペインを縮めて行が見えない場合はスクロール位置を設定できない。
+                if (firstRow >= 0 && firstRow < _grid.Rows.Count && _grid.DisplayedRowCount(true) > 0)
+                    _grid.FirstDisplayedScrollingRowIndex = firstRow;
             }
 
             if (fitWidths)
