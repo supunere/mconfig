@@ -31,6 +31,7 @@ public sealed record CombinationDisplayRow(IReadOnlyDictionary<string, string> V
 /// <summary>
 /// 組み合わせの表。Rows は表示する位置の行だけをその場で求める一覧（全行を保持しない）。
 /// TotalCount は絞り込む前の組み合わせの数、Large は <see cref="CombinationSpace.LargeThreshold"/> を超えること（表示と検証の費用を事前に知らせる）。
+/// SpecColumns は未指定の条件の列だけ。各行の Values は、ルール移動や値の参照で使うため、指定済みの条件も含む。
 /// </summary>
 public sealed record CombinationTableDisplay(
     SessionVersion Version,
@@ -69,12 +70,19 @@ public sealed class CellSelectedEventArgs(int? index, string? category) : EventA
     public string? Category { get; } = category;
 }
 
+public sealed class AssignmentNavigationEventArgs(string category, IReadOnlyDictionary<string, string> combination) : EventArgs
+{
+    public string Category { get; } = category;
+    public IReadOnlyDictionary<string, string> Combination { get; } = combination;
+}
+
 /// <summary>組み合わせ一覧の View 契約。WinForms の型を公開しない。</summary>
 public interface ICombinationListView
 {
     event EventHandler<FilterChangedEventArgs>? FilterChanged;
     event EventHandler<CellSelectedEventArgs>? CellSelected;
     event EventHandler? FiltersCleared;
+    event EventHandler? AssignmentRequested;
 
     void ShowFilters(IReadOnlyList<FilterDisplay> filters);
     void ShowCombinations(CombinationTableDisplay table);
@@ -121,10 +129,19 @@ public sealed class CombinationListPresenter : QueryPresenter<CombinationListRea
         _view.FilterChanged += OnFilterChanged;
         _view.CellSelected += OnCellSelected;
         _view.FiltersCleared += OnFiltersCleared;
+        _view.AssignmentRequested += OnAssignmentRequested;
     }
 
     /// <summary>表示内容や選択が変わったとき（比較表の Presenter が受け取る）。</summary>
     public event EventHandler<CombinationContext>? ContextChanged;
+    public event EventHandler<AssignmentNavigationEventArgs>? AssignmentNavigationRequested;
+
+    private void OnAssignmentRequested(object? sender, EventArgs e)
+    {
+        if (_selected is null || _category is null) return;
+        AssignmentNavigationRequested?.Invoke(this, new(_category,
+            new ReadOnlyDictionary<string, string>(new Dictionary<string, string>(_selected, StringComparer.Ordinal))));
+    }
 
     protected override CombinationListReadModel Query() => _combinations.Handle(new GetCombinationsQuery());
 
@@ -138,14 +155,14 @@ public sealed class CombinationListPresenter : QueryPresenter<CombinationListRea
             SpecAxis? axis = model.Spec.Axes.FirstOrDefault(a => a.Key == key);
             if (axis is null || (_filters[key] is { } value && !axis.Values.Contains(value))) _filters.Remove(key);
         }
-        _view.ShowFilters(model.Spec.Axes
-            .Select(a => new FilterDisplay(a.Key, a.DisplayName.Resolve(Language.Code, a.Key), a.Values, _filters.GetValueOrDefault(a.Key)))
-            .ToArray());
         ShowTable(model);
     }
 
     private void ShowTable(CombinationListReadModel model)
     {
+        _view.ShowFilters(model.Spec.Axes
+            .Select(a => new FilterDisplay(a.Key, a.DisplayName.Resolve(Language.Code, a.Key), a.Values, _filters.GetValueOrDefault(a.Key)))
+            .ToArray());
         CombinationRows rows = Shown(model).Rows;
         long? selectedIndex = _selected is null ? null : rows.IndexOf(_selected);
         if (selectedIndex is null || selectedIndex >= rows.Count) (_selected, selectedIndex) = (null, null);
@@ -156,7 +173,8 @@ public sealed class CombinationListPresenter : QueryPresenter<CombinationListRea
         if (_category is null || !model.Categories.Contains(_category)) _category = model.Categories.FirstOrDefault();
         _view.ShowCombinations(new CombinationTableDisplay(
             model.Version,
-            model.Spec.Axes.Select(a => new ColumnDisplay(a.Key, a.DisplayName.Resolve(Language.Code, a.Key))).ToArray(),
+            model.Spec.Axes.Where(a => _filters.GetValueOrDefault(a.Key) is null)
+                .Select(a => new ColumnDisplay(a.Key, a.DisplayName.Resolve(Language.Code, a.Key))).ToArray(),
             categories,
             _displayRows!,
             model.Rows.TotalCount,
@@ -270,5 +288,6 @@ public sealed class CombinationListPresenter : QueryPresenter<CombinationListRea
         _view.FilterChanged -= OnFilterChanged;
         _view.CellSelected -= OnCellSelected;
         _view.FiltersCleared -= OnFiltersCleared;
+        _view.AssignmentRequested -= OnAssignmentRequested;
     }
 }

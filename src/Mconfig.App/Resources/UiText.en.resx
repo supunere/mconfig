@@ -267,6 +267,17 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Tool_Validate" xml:space="preserve"><value>Validate</value></data>
   <data name="Title_Unsaved" xml:space="preserve"><value> (unsaved changes)</value></data>
   <data name="Filter_Clear" xml:space="preserve"><value>Clear Filters</value></data>
+  <data name="Filter_ClearAll" xml:space="preserve"><value>Clear all</value></data>
+  <data name="Filter_Expand" xml:space="preserve"><value>Filters ▾</value></data>
+  <data name="Filter_Collapse" xml:space="preserve"><value>Filters ▴</value></data>
+  <data name="Filter_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Filter_None" xml:space="preserve"><value>No filters</value></data>
+  <data name="Filter_SelectedCount" xml:space="preserve"><value>{0} filters applied</value></data>
+  <data name="Filter_Remove" xml:space="preserve"><value>Remove filter {0}: {1}</value></data>
+  <data name="Combination_ConditionsGroup" xml:space="preserve"><value>Combination conditions</value></data>
+  <data name="Combination_ResultsGroup" xml:space="preserve"><value>Assignment results</value></data>
+  <data name="Combination_GoToAssignment" xml:space="preserve"><value>Go to assignment rule</value></data>
+  <data name="Assignment_RuleNotFound" xml:space="preserve"><value>No assignment rule matches this combination.</value></data>
   <data name="Combination_Hint" xml:space="preserve"><value>Select a cell to show that category's values below</value></data>
   <data name="Values_Show" xml:space="preserve"><value>Show Values (F6)</value></data>
   <data name="Values_Hide" xml:space="preserve"><value>Hide Values (F6)</value></data>

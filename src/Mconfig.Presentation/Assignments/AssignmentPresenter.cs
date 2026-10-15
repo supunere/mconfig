@@ -46,6 +46,8 @@ public sealed record AssignmentTableDisplay(
     int? SelectedRow)
 {
     public string CategoryLabel { get; init; } = Category;
+    public bool RuleNavigation { get; init; }
+    public bool RuleNotFound { get; init; }
 
     /// <summary>変わる組み合わせの一覧。ShowAllChanges なら全組み合わせ、そうでなければ変わるものだけ。</summary>
     public IReadOnlyList<AssignmentChangeDisplay> Changes { get; init; } = [];
@@ -122,6 +124,7 @@ public sealed class AssignmentPresenter : QueryPresenter<AssignmentListReadModel
     private readonly AssignmentCommandHandlers _commands;
     private string? _category;
     private int? _selectedRow;
+    private IReadOnlyDictionary<string, string>? _navigationCombination;
     private bool _showAllChanges;
     private readonly TimeSpan _changeDelay;
 
@@ -147,6 +150,16 @@ public sealed class AssignmentPresenter : QueryPresenter<AssignmentListReadModel
     {
         _category = category;
         _selectedRow = null;
+        _navigationCombination = null;
+        return RefreshAsync();
+    }
+
+    /// <summary>画面切り替え時の保存・破棄が済んだ最新のルールから、該当行を探す。</summary>
+    public Task SelectForCombinationAsync(string category, IReadOnlyDictionary<string, string> combination)
+    {
+        _category = category;
+        _selectedRow = null;
+        _navigationCombination = combination;
         return RefreshAsync();
     }
 
@@ -161,6 +174,18 @@ public sealed class AssignmentPresenter : QueryPresenter<AssignmentListReadModel
 
     protected override void Render(AssignmentListReadModel model)
     {
+        bool navigating = _navigationCombination is not null;
+        bool ruleNotFound = false;
+        if (_navigationCombination is { } combination)
+        {
+            int matchingRow = model.Available && model.Category == _category
+                ? AssignmentEvaluation.FindFirstMatchingRow(model.Rows.Select(r =>
+                    new Assignment { Specs = r.Conditions, Preset = r.Preset }).ToArray(), combination)
+                : -1;
+            _selectedRow = matchingRow >= 0 ? matchingRow : null;
+            ruleNotFound = matchingRow < 0;
+            _navigationCombination = null;
+        }
         if (_category != model.Category)
         {
             _category = model.Category;
@@ -197,6 +222,8 @@ public sealed class AssignmentPresenter : QueryPresenter<AssignmentListReadModel
             selected)
         {
             CategoryLabel = LabelOf(model, model.Category),
+            RuleNavigation = navigating,
+            RuleNotFound = ruleNotFound,
             Changes = new ChangeRows(model.Changes, columns, _showAllChanges),
             ShowAllChanges = _showAllChanges,
             ChangedCount = model.Changes.Count(c => c.Changed),

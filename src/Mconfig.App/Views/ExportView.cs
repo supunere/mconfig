@@ -13,7 +13,6 @@ namespace Mconfig.App.Views;
 /// </summary>
 internal sealed class ExportView : UserControl, IExportView
 {
-    private readonly Label _heading = new() { Dock = DockStyle.Top, AutoSize = true, Font = UiAppearance.HeadingFont, Padding = new Padding(8, 8, 8, 12) };
     private readonly ProgressStrip _progress = new();
     private readonly GroupBox _exportGroup = new() { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(8) };
     private readonly FlowLayoutPanel _cards = new() { Dock = DockStyle.Top, AutoSize = true, WrapContents = true };
@@ -71,7 +70,6 @@ internal sealed class ExportView : UserControl, IExportView
         Controls.Add(_pendingGroup);
         Controls.Add(_exportGroup);
         Controls.Add(_progress);
-        Controls.Add(_heading);
 
         _progress.CancelClicked += (_, _) => CancelRequested?.Invoke(this, EventArgs.Empty);
         _exportTest.Click += (_, _) => ExportRequested?.Invoke(this, new ExportRequestedEventArgs(ReleaseKind.Test));
@@ -91,7 +89,6 @@ internal sealed class ExportView : UserControl, IExportView
 
     public void ApplyTexts()
     {
-        _heading.Text = UiText.Get("Screen_Export");
         _exportGroup.Text = UiText.Get("Output_Choose");
         _testTitle.Text = UiText.Get("Output_TestTitle");
         _releaseTitle.Text = UiText.Get("Output_ReleaseTitle");
@@ -147,7 +144,7 @@ internal sealed class ExportView : UserControl, IExportView
     }
 
     private void FitScrollableContent() => AutoScrollMinSize = new Size(0,
-        _heading.Height + _exportGroup.Height + (_progress.Visible ? _progress.Height : 0) + LogicalToDeviceUnits(220));
+        _exportGroup.Height + (_progress.Visible ? _progress.Height : 0) + LogicalToDeviceUnits(220));
 
     public void ShowState(DataStateDisplay state)
     {

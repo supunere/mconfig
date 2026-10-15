@@ -267,6 +267,17 @@
   <data name="Tool_Validate" xml:space="preserve"><value>検証</value></data>
   <data name="Title_Unsaved" xml:space="preserve"><value>（未保存の変更あり）</value></data>
   <data name="Filter_Clear" xml:space="preserve"><value>絞り込みを解除</value></data>
+  <data name="Filter_ClearAll" xml:space="preserve"><value>すべて解除</value></data>
+  <data name="Filter_Expand" xml:space="preserve"><value>絞り込み ▾</value></data>
+  <data name="Filter_Collapse" xml:space="preserve"><value>絞り込み ▴</value></data>
+  <data name="Filter_Close" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Filter_None" xml:space="preserve"><value>絞り込みなし</value></data>
+  <data name="Filter_SelectedCount" xml:space="preserve"><value>{0}条件を指定</value></data>
+  <data name="Filter_Remove" xml:space="preserve"><value>{0}: {1} の絞り込みを解除</value></data>
+  <data name="Combination_ConditionsGroup" xml:space="preserve"><value>組み合わせの条件</value></data>
+  <data name="Combination_ResultsGroup" xml:space="preserve"><value>割り当て結果</value></data>
+  <data name="Combination_GoToAssignment" xml:space="preserve"><value>割り当てルールへ移動</value></data>
+  <data name="Assignment_RuleNotFound" xml:space="preserve"><value>この組み合わせに一致する割り当てルールはありません。</value></data>
   <data name="Combination_Hint" xml:space="preserve"><value>セルを選ぶと、そのカテゴリの値を下に表示します</value></data>
   <data name="Values_Show" xml:space="preserve"><value>値を表示 (F6)</value></data>
   <data name="Values_Hide" xml:space="preserve"><value>値を隠す (F6)</value></data>

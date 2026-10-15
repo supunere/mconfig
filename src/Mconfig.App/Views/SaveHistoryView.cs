@@ -17,7 +17,6 @@ namespace Mconfig.App.Views;
 /// </summary>
 internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
 {
-    private readonly Label _heading = new() { Dock = DockStyle.Top, AutoSize = true, Font = UiAppearance.HeadingFont, Padding = new Padding(8, 8, 8, 12) };
     private readonly Label _changeCount = new() { AutoSize = true, Font = UiAppearance.HeadingFont, Margin = new Padding(3, 4, 12, 4) };
     private readonly Label _validationState = new() { AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
     private readonly GroupBox _validationGroup = new() { Dock = DockStyle.Fill, Padding = new Padding(8) };
@@ -142,7 +141,6 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         Load += (_, _) => split.SplitterDistance = Math.Max(split.Panel1MinSize, split.Width * 11 / 20);
         Controls.Add(split);
         Controls.Add(_historyProgress);
-        Controls.Add(_heading);
 
         _historyProgress.CancelClicked += (_, _) => CancelRequested?.Invoke(this, EventArgs.Empty);
         _exportUncovered.Click += (_, _) => ExportUncoveredRequested?.Invoke(this, EventArgs.Empty);
@@ -194,7 +192,6 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
 
     public void ApplyTexts()
     {
-        _heading.Text = UiText.Get("Screen_History");
         _saveGroup.Text = UiText.Get("History_CurrentChanges");
         _validate.Text = UiText.Get("Data_Validate");
         _goToIssue.Text = UiText.Get("Data_GoToIssue");

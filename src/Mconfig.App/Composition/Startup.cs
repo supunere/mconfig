@@ -134,6 +134,8 @@ internal static class Startup
                     else list.SelectCategory(target.Category);
                 });
             list.ContextChanged += comparison.OnContextChanged;
+            list.AssignmentNavigationRequested += (_, target) => form.OpenScreen(AppScreen.Assignments,
+                () => _ = assignments.SelectForCombinationAsync(target.Category, target.Combination));
             form.Shown += (_, _) =>
             {
                 _ = list.RefreshAsync();

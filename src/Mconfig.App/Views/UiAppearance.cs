@@ -10,6 +10,7 @@ internal static class UiAppearance
     public static Color Text => SystemColors.WindowText;
     public static Color Muted => SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(96, 104, 115);
     public static Color Border => SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(226, 229, 233);
+    public static Color GroupBorder => SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(178, 190, 207);
     public static Color Accent => SystemInformation.HighContrast ? SystemColors.Highlight : Color.FromArgb(36, 99, 180);
     public static Color Selection => SystemInformation.HighContrast ? SystemColors.Highlight : Color.FromArgb(232, 241, 252);
     public static Color Warning => SystemInformation.HighContrast ? SystemColors.Window : Color.FromArgb(255, 248, 226);

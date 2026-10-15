@@ -155,6 +155,7 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
     private LeaveGuard? _guard;
     private bool _switching;
     private bool _closeConfirmed;
+    private bool _adjustingSplit;
 
     public MainForm(DisplayLanguage language, string workspacePath, bool readOnly)
     {
@@ -180,8 +181,9 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         _split.Panel2MinSize = 120;
         _split.SplitterMoved += (_, _) =>
         {
-            if (_split.Height > 0 && !_split.Panel2Collapsed) _splitRatio = (double)_split.SplitterDistance / _split.Height;
+            if (!_adjustingSplit && _split.Height > 0 && !_split.Panel2Collapsed) _splitRatio = (double)_split.SplitterDistance / _split.Height;
         };
+        CombinationList.TableSpaceRequested += (_, _) => ApplySplitRatio();
         Load += (_, _) => ApplySplitRatio();
         _host.Controls.AddRange([_split, Assignments, History, Export]);
         Assignments.Dock = DockStyle.Fill;
@@ -288,7 +290,12 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
     private void ApplySplitRatio()
     {
         if (_split.Panel2Collapsed || _split.Height <= _split.Panel1MinSize + _split.Panel2MinSize) return;
-        _split.SplitterDistance = Math.Clamp((int)(_split.Height * _splitRatio), _split.Panel1MinSize, _split.Height - _split.Panel2MinSize - _split.SplitterWidth);
+        int preferred = Math.Max((int)(_split.Height * _splitRatio), CombinationList.PreferredTableHeight);
+        int distance = Math.Clamp(preferred, _split.Panel1MinSize, _split.Height - _split.Panel2MinSize - _split.SplitterWidth);
+        if (_split.SplitterDistance == distance) return;
+        _adjustingSplit = true;
+        try { _split.SplitterDistance = distance; }
+        finally { _adjustingSplit = false; }
     }
 
     private void ToggleValues()

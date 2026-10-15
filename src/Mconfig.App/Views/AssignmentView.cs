@@ -17,7 +17,6 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
     private static Color UnreachableBack => UiAppearance.Missing;
     private static Color ChangedBack => UiAppearance.Warning;
     private static Color ProblemFore => SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(160, 60, 0);
-    private readonly Label _heading = new() { Dock = DockStyle.Top, AutoSize = true, Font = UiAppearance.HeadingFont, Padding = new Padding(8, 8, 8, 12) };
 
     private readonly ListView _categoryList = new()
     {
@@ -149,7 +148,6 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
         outer.Panel1.Controls.Add(left);
         outer.Panel2.Controls.Add(right);
         Controls.Add(outer);
-        Controls.Add(_heading);
         _categoryList.Resize += (_, _) =>
         {
             int width = Math.Max(180, _categoryList.ClientSize.Width - SystemInformation.VerticalScrollBarWidth);
@@ -208,7 +206,6 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
 
     public void ApplyTexts()
     {
-        _heading.Text = UiText.Get("Screen_Assignments");
         _categoryTitle.Text = UiText.Get("Assignment_Categories");
         _categoryLegend.Text = UiText.Get("Assignment_CategoryLegend");
         _categoryList.Columns[0].Text = UiText.Get("Assignment_ColCategory");
@@ -361,11 +358,26 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
             }
 
             if (table.SelectedRow is int selected && selected < _grid.Rows.Count)
+            {
                 _grid.CurrentCell = _grid.Rows[selected].Cells[Math.Min(currentColumn, _grid.Columns.Count - 1)];
+                if (table.RuleNavigation)
+                {
+                    _grid.CurrentCell = _grid.Rows[selected].Cells[table.Columns.Count];
+                    _grid.Rows[selected].DefaultCellStyle.BackColor = UiAppearance.Selection;
+                    _grid.FirstDisplayedScrollingRowIndex = selected;
+                    _grid.EndEdit();
+                }
+            }
+            if (table.RuleNotFound)
+            {
+                _grid.ClearSelection();
+                _grid.CurrentCell = null;
+            }
             int unreachable = table.Rows.Count(r => r.Unreachable);
             _info.Text = unreachable > 0
                 ? UiText.Format("Assignment_CountWithUnreachable", table.Rows.Count, unreachable)
                 : UiText.Format("Assignment_Count", table.Rows.Count);
+            if (table.RuleNotFound) _info.Text = UiText.Get("Assignment_RuleNotFound");
         }
         finally
         {
