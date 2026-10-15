@@ -90,7 +90,7 @@ public sealed class SaveHistoryPresenter : IDisposable
     private readonly RequestTracker _uncommittedRequests = new();
     private readonly RequestTracker _changeRequests = new();
     private int? _commitErrors;
-    private SessionVersion? _validatedVersion;
+    private ContentFingerprint? _validatedFingerprint;
     private ValidationDisplay? _validation;
     private bool _disposed;
 
@@ -144,10 +144,14 @@ public sealed class SaveHistoryPresenter : IDisposable
         ShowState();
         _ = RecountAfterChangeAsync();
         // 検証した後に内容が変わったら、結果が古いことを示す（自動では検証し直さない）
-        if (_validation is not null && _validatedVersion != e.Version && !_validation.Stale)
+        if (_validation is { Incomplete: false })
         {
-            _validation = _validation with { Stale = true };
-            _view.ShowValidation(_validation);
+            bool stale = _validatedFingerprint != _status.GetEditedFingerprint();
+            if (_validation.Stale != stale)
+            {
+                _validation = _validation with { Stale = stale };
+                _view.ShowValidation(_validation);
+            }
         }
     });
 
@@ -273,8 +277,8 @@ public sealed class SaveHistoryPresenter : IDisposable
             _ui.Post(() =>
             {
                 if (_disposed) return;
-                _validatedVersion = model.Version;
-                _validation = new ValidationDisplay(_map.Issues(model.Items, model.Schemas), model.Version != _status.Handle().Version);
+                _validatedFingerprint = model.Fingerprint;
+                _validation = new ValidationDisplay(_map.Issues(model.Items, model.Schemas), model.Fingerprint != _status.GetEditedFingerprint());
                 _view.ShowValidation(_validation);
             });
         }

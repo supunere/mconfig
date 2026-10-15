@@ -20,9 +20,10 @@ internal static class UiAppearance
     {
         grid.Font = BodyFont;
         grid.BorderStyle = BorderStyle.None;
+        grid.Paint += (_, e) => DrawTableBorder(grid, e.Graphics);
         grid.BackgroundColor = Surface;
         grid.GridColor = Border;
-        grid.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+        grid.CellBorderStyle = DataGridViewCellBorderStyle.Single;
         grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
         grid.EnableHeadersVisualStyles = false;
         grid.ColumnHeadersDefaultCellStyle.BackColor = Background;
@@ -76,7 +77,73 @@ internal static class UiAppearance
         list.BorderStyle = BorderStyle.None;
         list.BackColor = Surface;
         list.ForeColor = Text;
+        list.GridLines = true;
+        // データを読む表は、編集用の表と同じ配色の見出しを使う。
+        // 行は標準描画を保ち、選択・差分色・仮想モードにも対応する。
+        list.OwnerDraw = true;
+        list.DrawColumnHeader += (_, e) =>
+        {
+            using SolidBrush background = new(Background);
+            e.Graphics.FillRectangle(background, e.Bounds);
+            using Pen border = new(Border);
+            e.Graphics.DrawLine(border, e.Bounds.Right - 1, e.Bounds.Top, e.Bounds.Right - 1, e.Bounds.Bottom - 1);
+            e.Graphics.DrawLine(border, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right - 1, e.Bounds.Bottom - 1);
+            Rectangle text = Rectangle.Inflate(e.Bounds, -8, 0);
+            TextFormatFlags alignment = e.Header?.TextAlign switch
+            {
+                HorizontalAlignment.Center => TextFormatFlags.HorizontalCenter,
+                HorizontalAlignment.Right => TextFormatFlags.Right,
+                _ => TextFormatFlags.Left,
+            };
+            TextRenderer.DrawText(e.Graphics, e.Header?.Text ?? "", list.Font, text, Text,
+                alignment | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+        };
+        list.DrawItem += (_, e) => e.DrawDefault = true;
+        list.DrawSubItem += (_, e) => e.DrawDefault = true;
+    }
+
+    internal static void DrawTableBorder(Control table, Graphics graphics) =>
+        ControlPaint.DrawBorder(graphics, table.ClientRectangle, Border, ButtonBorderStyle.Solid);
+
+    /// <summary>カテゴリの選択は空白まで格子を引かず、フォーカスが右側へ移っても選択を明示する。</summary>
+    public static void ApplyNavigationList(ListView list)
+    {
+        list.Font = BodyFont;
+        list.BorderStyle = BorderStyle.None;
+        list.BackColor = Surface;
+        list.ForeColor = Text;
         list.GridLines = false;
+        list.HeaderStyle = ColumnHeaderStyle.None;
+        list.OwnerDraw = true;
+        // Details表示の行高を確保し、キー操作やアクセシビリティはListViewのまま保つ。
+        ImageList spacing = new() { ImageSize = new Size(1, list.LogicalToDeviceUnits(40)) };
+        list.SmallImageList = spacing;
+        list.Disposed += (_, _) => spacing.Dispose();
+        list.DrawItem += (_, e) =>
+        {
+            using SolidBrush background = new(e.Item.Selected ? Selection : Surface);
+            e.Graphics.FillRectangle(background, e.Bounds);
+        };
+        list.DrawSubItem += (_, e) =>
+        {
+            if (e.Item is not { } item || e.SubItem is not { } subItem) return;
+            bool selected = item.Selected;
+            using SolidBrush background = new(selected ? Selection : Surface);
+            e.Graphics.FillRectangle(background, e.Bounds);
+            Color foreground = selected && SystemInformation.HighContrast ? SystemColors.HighlightText
+                : e.ColumnIndex == 0 ? selected ? Accent : Text : subItem.ForeColor;
+            Rectangle text = e.Bounds;
+            text.X += 10;
+            text.Width = Math.Max(0, text.Width - 14);
+            if (selected && e.ColumnIndex == 0)
+            {
+                using SolidBrush accent = new(Accent);
+                e.Graphics.FillRectangle(accent, e.Bounds.Left, e.Bounds.Top + 4,
+                    list.LogicalToDeviceUnits(3), Math.Max(0, e.Bounds.Height - 8));
+            }
+            TextRenderer.DrawText(e.Graphics, subItem.Text, list.Font, text, foreground,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+        };
     }
 
     public static void ApplyGroup(GroupBox group)

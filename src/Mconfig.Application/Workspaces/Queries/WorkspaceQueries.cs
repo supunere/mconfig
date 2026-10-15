@@ -8,6 +8,9 @@ namespace Mconfig.Application.Workspaces.Queries;
 public sealed class GetWorkspaceStatusHandler(EditSession session)
 {
     public WorkspaceStatus Handle() => session.Status;
+
+    /// <summary>保存中などの状態変更とは独立した、現在の編集内容の指紋。</summary>
+    public ContentFingerprint GetEditedFingerprint() => session.Inspect(s => s.Edited);
 }
 
 /// <summary>

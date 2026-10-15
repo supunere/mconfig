@@ -52,7 +52,7 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
     private readonly RadioButton _changedOnly = new() { AutoSize = true, Checked = true, Margin = new Padding(3, 3, 12, 3) };
     private readonly RadioButton _all = new() { AutoSize = true };
     private readonly Label _compared = new() { AutoSize = true, Margin = new Padding(16, 6, 3, 3), ForeColor = SystemColors.GrayText };
-    private readonly ListView _changes = new()
+    private readonly ListView _changes = new TableListView()
     {
         Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true, HeaderStyle = ColumnHeaderStyle.Nonclickable, VirtualMode = true,
     };
@@ -75,7 +75,8 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
         UiAppearance.ApplyGrid(_grid);
         _grid.RowHeadersDefaultCellStyle.BackColor = UiAppearance.Background;
         _grid.RowHeadersDefaultCellStyle.ForeColor = UiAppearance.Text;
-        foreach (ListView list in new[] { _categoryList, _changes }) UiAppearance.ApplyList(list);
+        UiAppearance.ApplyNavigationList(_categoryList);
+        UiAppearance.ApplyList(_changes);
         foreach (Button button in new[] { _add, _remove, _up, _down }) UiAppearance.ApplyButton(button);
         foreach (GroupBox group in new[] { _changesGroup, _totalsGroup, _guideGroup }) UiAppearance.ApplyGroup(group);
         foreach (Label label in new[] { _categoryLegend, _rule, _compared, _info }) label.ForeColor = UiAppearance.Muted;

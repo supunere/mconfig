@@ -40,6 +40,15 @@ dotnet publish src/Mconfig.App/Mconfig.App.csproj -c Release -r win-x64 --self-c
 
 配布ZIPの作成と同梱文書は[RELEASE.md](RELEASE.md)を参照してください。ランタイム版を変える場合は、依存ライセンス文書も確認してください。
 
+## テスト
+
+```powershell
+dotnet test tests/Mconfig.Presentation.Tests/Mconfig.Presentation.Tests.csproj -c Release
+```
+
+検証結果が保存状態の変化で古くならないこと、内容の編集・復帰、非同期の検証中に状態が変わる場合を確認します。
+UIでの確認範囲と結果は[動作確認記録](docs/ui-review-2026-10-15.md)を参照してください。
+
 ## バックアップと復元
 
 アプリを終了してから、ワークスペースのフォルダー全体を別の媒体へコピーしてください。設定データだけでなく、履歴を含む隠しフォルダーも保存します。同じディスク上の履歴だけでは、ディスク故障への備えになりません。

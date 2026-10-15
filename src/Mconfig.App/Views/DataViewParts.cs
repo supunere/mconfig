@@ -60,7 +60,7 @@ internal static class DataViewParts
 
     public static ListView CreateList()
     {
-        ListView list = new()
+        ListView list = new TableListView()
         {
             Dock = DockStyle.Fill,
             View = View.Details,

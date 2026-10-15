@@ -4,4 +4,5 @@
   <Project Path="Mconfig.Domain/Mconfig.Domain.csproj" />
   <Project Path="Mconfig.Infrastructure/Mconfig.Infrastructure.csproj" />
   <Project Path="Mconfig.Presentation/Mconfig.Presentation.csproj" />
+  <Project Path="../tests/Mconfig.Presentation.Tests/Mconfig.Presentation.Tests.csproj" />
 </Solution>

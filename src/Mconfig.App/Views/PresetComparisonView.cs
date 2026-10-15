@@ -351,11 +351,12 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         };
         Label body = new() { Text = UiText.Format("SharedEdit_Body", presets), AutoSize = true, MaximumSize = new Size(560, 0), Margin = new Padding(0, 0, 0, 8) };
         bool multiple = prompt.Presets.Count > 1;
-        ListView list = new()
+        ListView list = new TableListView()
         {
             View = View.Details, FullRowSelect = true, HeaderStyle = ColumnHeaderStyle.Nonclickable, MultiSelect = false,
             Size = new Size(560, 150), Margin = new Padding(0, 0, 0, 8),
         };
+        UiAppearance.ApplyList(list);
         if (multiple) list.Columns.Add(UiText.Get("SharedEdit_ColPreset"), 110);
         foreach (string label in prompt.SpecLabels) list.Columns.Add(label, 90);
         list.Columns.Add("", 160);
