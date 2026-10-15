@@ -17,7 +17,7 @@
   <data name="Comparison_Choose" xml:space="preserve"><value>Choose presets...</value></data>
   <data name="Comparison_ShowAll" xml:space="preserve"><value>All presets</value></data>
   <data name="Comparison_Automatic" xml:space="preserve"><value>Related presets</value></data>
-  <data name="Comparison_Limited" xml:space="preserve"><value>Showing {0} of {1} presets, related presets first.</value></data>
+  <data name="Comparison_Limited" xml:space="preserve"><value>Showing {0} of {1} presets. Selecting a row keeps the displayed presets unchanged.</value></data>
   <data name="Comparison_Manual" xml:space="preserve"><value>Showing the {0} chosen presets (of {1}).</value></data>
   <data name="Comparison_All" xml:space="preserve"><value>Showing all {0} presets.</value></data>
   <data name="Comparison_ColGroup" xml:space="preserve"><value>Group</value></data>
@@ -285,7 +285,10 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Values_Selection" xml:space="preserve"><value>Selected combination: {0} → {1}</value></data>
   <data name="Values_NoPreset" xml:space="preserve"><value>(no preset)</value></data>
   <data name="Values_NoSelection" xml:space="preserve"><value>No combination selected (select a cell in the table above)</value></data>
-  <data name="Legend_Differs" xml:space="preserve"><value>Differs from first</value></data>
+  <data name="Legend_Differs" xml:space="preserve"><value>Differs from selected preset</value></data>
+  <data name="Comparison_SelectedMarker" xml:space="preserve"><value>Selected</value></data>
+  <data name="Comparison_SelectionOutside" xml:space="preserve"><value>The selected preset is not displayed.</value></data>
+  <data name="Comparison_IncludeSelected" xml:space="preserve"><value>Add to displayed presets</value></data>
   <data name="Legend_Unsaved" xml:space="preserve"><value>Unsaved *</value></data>
   <data name="Legend_Missing" xml:space="preserve"><value>(empty)</value></data>
   <data name="Legend_Unused" xml:space="preserve"><value>Not used</value></data>

@@ -6,9 +6,9 @@ using Mconfig.Presentation.Common;
 namespace Mconfig.App.Views;
 
 /// <summary>
-/// 値の表（プリセット比較と値の編集）。組み合わせの表で選んだカテゴリの値を、選んだプリセットを先頭の列にして並べる。
+/// 値の表（プリセット比較と値の編集）。プリセットの列順を保ち、組み合わせの割り当て先を見出しで強調する。
 /// 上端のバーに、どのカテゴリのどの組み合わせの値かを示す。セルの状態は色と文言の両方で区別する:
-/// 未入力（淡い赤と「（未入力）」）、使用しない（灰色と「使用しない」）、未保存の変更（太字と「*」）、先頭と違う値（淡い黄）。
+/// 未入力（淡い赤と「（未入力）」）、使用しない（灰色と「使用しない」）、未保存の変更（太字と「*」）、選択中のプリセットと違う値（淡い黄）。
 /// 比較対象は自動（関連優先）・任意選択・全件を切り替えられる。
 /// セルの確定と Ctrl+V の矩形貼り付けは Presenter へ知らせるだけで、表示は Presenter が結果に応じて描き直す。
 /// セルの入力中に届いた表示は、入力を捨てないよう入力が終わるまで保留する。
@@ -36,6 +36,9 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
     private readonly Button _rename = new() { AutoSize = true };
     private readonly Button _delete = new() { AutoSize = true };
     private readonly Label _info = new() { Dock = DockStyle.Bottom, AutoSize = true, Padding = new Padding(4) };
+    private readonly FlowLayoutPanel _selectionNotice = new() { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(8, 2, 8, 6), Visible = false };
+    private readonly Label _selectionOutside = new() { AutoSize = true, Margin = new Padding(3, 7, 8, 3) };
+    private readonly Button _includeSelected = new() { AutoSize = true };
     private readonly DataGridView _grid = new()
     {
         Dock = DockStyle.Fill,
@@ -65,9 +68,11 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         Font = UiAppearance.BodyFont;
         BackColor = UiAppearance.Surface;
         UiAppearance.ApplyGrid(_grid);
-        // 選択中の説明や長いプリセット名で見出しが値の領域を占有しないようにする。
-        _grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
-        foreach (Button button in new[] { _hide, _add, _duplicate, _rename, _delete }) UiAppearance.ApplyButton(button);
+        // プリセット名と選択中の表示を二段にし、行の選択で見出しの高さを変えない。
+        _grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
+        _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+        _grid.ColumnHeadersHeight = LogicalToDeviceUnits(60);
+        foreach (Button button in new[] { _hide, _add, _duplicate, _rename, _delete, _includeSelected }) UiAppearance.ApplyButton(button);
         // 上端のバー（上下の境界）: どのカテゴリの、どの組み合わせの値か。右端に「値を隠す」
         TableLayoutPanel caption = new() { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2, Padding = new Padding(4, 8, 4, 4) };
         caption.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -91,6 +96,8 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         _legendUnsaved.Font = _bold;
         Controls.Add(_grid);
         Controls.Add(_info);
+        _selectionNotice.Controls.AddRange([_selectionOutside, _includeSelected]);
+        Controls.Add(_selectionNotice);
         Controls.Add(bar);
         Controls.Add(caption);
 
@@ -98,6 +105,11 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         _choose.Click += (_, _) => ChoosePresets();
         _showAll.Click += (_, _) => PresetsChosen?.Invoke(this, new PresetsChosenEventArgs(_shown?.AllPresets));
         _automatic.Click += (_, _) => PresetsChosen?.Invoke(this, new PresetsChosenEventArgs(null));
+        _includeSelected.Click += (_, _) =>
+        {
+            if (_shown is { SelectedPreset: { } selected } shown)
+                PresetsChosen?.Invoke(this, new PresetsChosenEventArgs(shown.Columns.Select(c => c.Name).Append(selected).Distinct(StringComparer.Ordinal).ToArray()));
+        };
         _add.Click += (_, _) => RequestOperation(PresetOperation.Add);
         _duplicate.Click += (_, _) => RequestOperation(PresetOperation.Duplicate);
         _rename.Click += (_, _) => RequestOperation(PresetOperation.Rename);
@@ -143,6 +155,8 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         _legendUnsaved.Text = UiText.Get("Legend_Unsaved");
         _legendMissing.Text = UiText.Get("Legend_Missing");
         _legendUnused.Text = UiText.Get("Legend_Unused");
+        _selectionOutside.Text = UiText.Get("Comparison_SelectionOutside");
+        _includeSelected.Text = UiText.Get("Comparison_IncludeSelected");
         _choose.Text = UiText.Get("Comparison_Choose");
         _showAll.Text = UiText.Get("Comparison_ShowAll");
         _automatic.Text = UiText.Get("Comparison_Automatic");
@@ -219,6 +233,8 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
             _captionDetail.Text = comparison.SelectedCombination is { } combination
                 ? UiText.Format("Values_Selection", string.Join(" / ", combination), comparison.SelectedPreset ?? UiText.Get("Values_NoPreset"))
                 : UiText.Get("Values_NoSelection");
+            _selectionNotice.Visible = comparison.Available && comparison.SelectedPreset is { } selected &&
+                comparison.AllPresets.Contains(selected) && !comparison.Columns.Any(c => c.AssignedToSelection);
             if (!comparison.Available)
             {
                 _info.Text = UiText.Get("Comparison_Unavailable");
@@ -234,21 +250,26 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
             _grid.Columns[0].HeaderText = UiText.Get("Comparison_ColGroup");
             _grid.Columns[1].HeaderText = UiText.Get("Comparison_ColRow");
             _grid.Columns[2].HeaderText = UiText.Get("Comparison_ColItem");
-            // 選択プリセットを先頭にする場合も、列の位置を再利用して見出しと値を更新する。
             // 比較対象数が変わった場合は末尾の列だけを追加・削除し、行は保持する。
             while (_grid.Columns.Count > FixedColumns + comparison.Columns.Count) _grid.Columns.RemoveAt(_grid.Columns.Count - 1);
             // 見出しの列は入力させない
             for (int i = 0; i < comparison.Columns.Count; i++)
             {
                 PresetColumnDisplay preset = comparison.Columns[i];
-                string header = preset.AssignedToSelection ? UiText.Format("Comparison_Selected", preset.Name) : preset.Name;
+                string header = preset.Name + Environment.NewLine + (preset.AssignedToSelection ? UiText.Get("Comparison_SelectedMarker") : " ");
                 if (_grid.Columns.Count <= FixedColumns + i) AddColumn($"preset_{preset.Name}", header, frozen: false);
                 else
                 {
                     _grid.Columns[FixedColumns + i].Name = $"preset_{preset.Name}";
                     _grid.Columns[FixedColumns + i].HeaderText = header;
                 }
-                _grid.Columns[FixedColumns + i].ToolTipText = header;
+                DataGridViewColumn column = _grid.Columns[FixedColumns + i];
+                column.ToolTipText = preset.AssignedToSelection ? UiText.Format("Comparison_Selected", preset.Name) : preset.Name;
+                DataGridViewCellStyle headerStyle = column.HeaderCell.Style;
+                headerStyle.BackColor = headerStyle.SelectionBackColor = preset.AssignedToSelection ? UiAppearance.Selection : UiAppearance.Background;
+                headerStyle.ForeColor = headerStyle.SelectionForeColor = preset.AssignedToSelection
+                    ? SystemInformation.HighContrast ? SystemColors.HighlightText : UiAppearance.Accent : UiAppearance.Text;
+                headerStyle.Font = preset.AssignedToSelection ? _bold : null;
                 if (!fitWidths && widths.TryGetValue(preset.Name, out int width)) _grid.Columns[FixedColumns + i].Width = width;
             }
 
@@ -275,7 +296,7 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
                     gridCell.ReadOnly = cell.State != ComparisonCellState.Editable;
                     if (cell.State == ComparisonCellState.Unused) style.BackColor = UnusedBack;
                     else if (cell.Missing) style.BackColor = MissingBack;
-                    else if (cell.DiffersFromFirst) style.BackColor = DiffBack;
+                    else if (cell.DiffersFromSelectedPreset) style.BackColor = DiffBack;
                     if (cell.Missing || cell.State != ComparisonCellState.Editable) style.ForeColor = SystemColors.GrayText;
                     if (cell.Unsaved) style.Font = _bold;
                     if (cell.State != ComparisonCellState.Editable) gridCell.ReadOnly = true;
@@ -295,6 +316,14 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
                 // 初回・比較対象・表示名の変更時だけ、見えている範囲からまとめて測る。
                 // 常時自動調整には戻さず、選択変更・単セル編集では利用者が調整した幅を維持する。
                 _grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
+                // 後からどの列が選択されても、太字の名前と「選択中」が二段に収まる幅を確保する。
+                for (int i = 0; i < comparison.Columns.Count; i++)
+                {
+                    DataGridViewColumn column = _grid.Columns[FixedColumns + i];
+                    int nameWidth = TextRenderer.MeasureText(comparison.Columns[i].Name, _bold).Width;
+                    int markerWidth = TextRenderer.MeasureText(UiText.Get("Comparison_SelectedMarker"), _bold).Width;
+                    column.Width = Math.Max(column.Width, Math.Max(nameWidth, markerWidth) + _grid.ColumnHeadersDefaultCellStyle.Padding.Horizontal + LogicalToDeviceUnits(28));
+                }
                 _widthsDirty = false;
             }
 
@@ -315,7 +344,7 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
 
     private static bool SameAppearance(ComparisonCellDisplay before, ComparisonCellDisplay after) =>
         before.State == after.State && before.Missing == after.Missing &&
-        before.DiffersFromFirst == after.DiffersFromFirst && before.Unsaved == after.Unsaved;
+        before.DiffersFromSelectedPreset == after.DiffersFromSelectedPreset && before.Unsaved == after.Unsaved;
 
     public string? AskPresetName(PresetNamePrompt prompt)
     {

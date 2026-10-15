@@ -11,10 +11,10 @@ namespace Mconfig.Presentation.Combinations;
 public sealed record PresetColumnDisplay(string Name, bool AssignedToSelection, bool Related);
 
 /// <summary>
-/// 比較表のセル。Missing は未入力（欠落または null）、DiffersFromFirst は同じ位置の先頭のプリセットと値が違う（未使用は比べない）。
+/// 比較表のセル。Missing は未入力（欠落または null）、DiffersFromSelectedPreset は選択中のプリセットと値が違う（未使用は比べない）。
 /// SavedText は一時保存した時点の値の表示で、未保存の変更があるセルだけが持つ（未入力だったときは空文字）。
 /// </summary>
-public sealed record ComparisonCellDisplay(string Text, ComparisonCellState State, bool Missing, bool DiffersFromFirst)
+public sealed record ComparisonCellDisplay(string Text, ComparisonCellState State, bool Missing, bool DiffersFromSelectedPreset)
 {
     public string? SavedText { get; init; }
     public bool Unsaved => SavedText is not null;
@@ -146,7 +146,7 @@ public interface IPresetComparisonView
 /// プリセット比較。スキーマの行・列から表を作り、同じ位置の値の違いを示す。
 /// 10 件以下は全プリセット、11 件以上は一覧で選んだ組み合わせと表示中の組み合わせに関連するプリセットを優先して最大 10 件。
 /// 利用者は任意のプリセットや全件を選べ、カテゴリを変えると自動選択に戻る。
-/// カテゴリは組み合わせの表で選んだセルに従い、選んだ組み合わせの割り当て先を先頭の列にして、ほかと比べる。
+/// カテゴリは組み合わせの表で選んだセルに従う。行の選択では表示対象と列順を変えず、割り当て先を比較基準にする。
 /// セルの入力・矩形貼り付け・プリセットの操作は、表示中の版を期待版とする Command にし、成功すれば変更通知で読み直す。
 /// 読み直しが届く前に続けて入力したときは、自分のセル入力の成功で進んだ版を期待版にし、自分の連続入力を競合にしない
 /// （ほかの更新が挟まれば版が合わず、競合になる）。
@@ -174,7 +174,8 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
     private CombinationContext? _context;
     private string? _category;
     private IReadOnlyList<string>? _chosen;
-    private (PresetComparisonReadModel Model, int[] Indexes, string Language, ComparisonRowDisplay[] Rows)? _rendered;
+    private IReadOnlyList<string>? _automaticPresets;
+    private (PresetComparisonReadModel Model, int[] Indexes, string? Baseline, string Language, ComparisonRowDisplay[] Rows)? _rendered;
     // 自分のセル入力だけで続けて進んだ版の範囲（行・列を変えない操作だけを数える）。
     // 範囲内のどの版を表示していても、最新の版（Last）まで自分の入力しか挟まっていない
     private (SessionVersion First, SessionVersion Last)? _ownCellEdits;
@@ -225,19 +226,28 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
         string? selectedPreset = _context?.SelectedPresets.GetValueOrDefault(model.Category);
         IReadOnlyList<string> related = _context?.RelatedPresets.GetValueOrDefault(model.Category) ?? [];
 
-        IReadOnlyList<string> shown = SelectedFirst(_chosen is null
-            ? Choose(model.Presets, selectedPreset, related, AutomaticLimit)
-            : model.Presets.Where(_chosen.Contains).ToArray(), selectedPreset);
+        if (_chosen is null)
+        {
+            // 自動選択はカテゴリを開いたときに決め、行や絞り込みの変更では入れ替えない。
+            // プリセットが追加・削除された場合だけ、既存の対象を保ちながら空きを補う。
+            _automaticPresets = _automaticPresets is null
+                ? Choose(model.Presets, selectedPreset, related, AutomaticLimit)
+                : _automaticPresets.Where(model.Presets.Contains).Concat(model.Presets)
+                    .Distinct(StringComparer.Ordinal).Take(AutomaticLimit).ToArray();
+        }
+        IReadOnlyList<string> shown = model.Presets.Where((_chosen ?? _automaticPresets!).Contains).ToArray();
+        int baselineIndex = selectedPreset is not null && model.Presets.Contains(selectedPreset)
+            ? IndexOf(model.Presets, selectedPreset) : -1;
         int[] indexes = shown.Select(p => IndexOf(model.Presets, p)).ToArray();
         _shownIndexes = indexes;
 
         SchemaDefinition? schema = model.Schema;
         ComparisonRowDisplay[] rows = _rendered is { } rendered && ReferenceEquals(rendered.Model, model) &&
-            rendered.Indexes.SequenceEqual(indexes) && rendered.Language == Language.Code ? rendered.Rows : model.Rows.Select(row =>
+            rendered.Indexes.SequenceEqual(indexes) && rendered.Baseline == selectedPreset && rendered.Language == Language.Code ? rendered.Rows : model.Rows.Select(row =>
         {
             SchemaGroupDefinition? group = DefinitionLabels.FindGroup(schema, row.Key.Group);
             ComparisonCell[] cells = indexes.Select(i => row.Cells[i]).ToArray();
-            string? baseline = cells.Where(c => c.State != ComparisonCellState.Unused).Select(Text).FirstOrDefault();
+            ComparisonCell? baseline = baselineIndex >= 0 ? row.Cells[baselineIndex] : null;
             bool differs = cells.Where(c => c.State != ComparisonCellState.Unused).Select(Text).Distinct().Count() > 1;
             return new ComparisonRowDisplay(
                 DefinitionLabels.Group(group, row.Key.Group, Language.Code),
@@ -247,12 +257,12 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
                 differs,
                 cells.Select(c => new ComparisonCellDisplay(
                     Text(c), c.State, c.State == ComparisonCellState.Editable && c.Value.Kind is CellValueKind.Missing or CellValueKind.Null,
-                    differs && c.State != ComparisonCellState.Unused && Text(c) != baseline)
+                    baseline is { State: not ComparisonCellState.Unused } && c.State != ComparisonCellState.Unused && Text(c) != Text(baseline))
                 {
                     SavedText = c.SavedValue is { } saved ? CellText.Format(saved) : null,
                 }).ToArray());
         }).ToArray();
-        _rendered = (model, indexes, Language.Code, rows);
+        _rendered = (model, indexes, selectedPreset, Language.Code, rows);
 
         _view.ShowComparison(new ComparisonDisplay(
             model.Version,
@@ -270,12 +280,6 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
             SelectedPreset = selectedPreset,
         });
     }
-
-    /// <summary>選んだ組み合わせの割り当て先を先頭にする（比べる基準にする）。残りはカテゴリ内の並び順のまま。</summary>
-    private static IReadOnlyList<string> SelectedFirst(IReadOnlyList<string> presets, string? selected) =>
-        selected is not null && presets.Contains(selected)
-            ? [selected, .. presets.Where(p => p != selected)]
-            : presets;
 
     /// <summary>
     /// 自動で比較するプリセット。limit 件以下なら全件、超えれば選んだ組み合わせの割り当て先 → 表示中の組み合わせに関連するもの →
@@ -298,12 +302,14 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
         _confirmedEdit = null;
         _category = category;
         _chosen = null;
+        _automaticPresets = null;
         return RefreshAsync();
     }
 
     private void OnPresetsChosen(object? sender, PresetsChosenEventArgs e)
     {
         _chosen = e.Presets?.ToArray();
+        _automaticPresets = null;
         if (Current is not null) Render(Current);
     }
 
@@ -450,6 +456,7 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
     {
         if (Current is not { Available: true } model) return;
         if (e.Operation != PresetOperation.Add && (e.Preset is null || !model.Presets.Contains(e.Preset))) return;
+        IReadOnlyList<string>? automaticBefore = _automaticPresets;
         int references = e.Preset is null ? 0 :
             _presets.Handle(new GetPresetsQuery(model.Category)).Presets.FirstOrDefault(p => p.Name == e.Preset)?.ReferenceCount ?? 0;
 
@@ -490,7 +497,13 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
 
         // 任意に選んだ比較対象を、作成・名前の変更・削除に追従させる。
         // 変更通知による読み直しが先に表示していることがあるので、選び直した後に表示し直す
-        if (_chosen is null) return;
+        if (_chosen is null)
+        {
+            if (automaticBefore is not null && e.Operation == PresetOperation.Rename && created is not null)
+                _automaticPresets = automaticBefore.Select(p => p == e.Preset ? created.Trim() : p).ToArray();
+            if (Current is not null) Render(Current);
+            return;
+        }
         if (created is not null)
         {
             string name = created.Trim();

@@ -17,7 +17,7 @@
   <data name="Comparison_Choose" xml:space="preserve"><value>プリセットを選択...</value></data>
   <data name="Comparison_ShowAll" xml:space="preserve"><value>すべて</value></data>
   <data name="Comparison_Automatic" xml:space="preserve"><value>関連するもの</value></data>
-  <data name="Comparison_Limited" xml:space="preserve"><value>全 {1} 件のうち、選んだ組み合わせに関連するプリセットを優先して {0} 件を表示しています。</value></data>
+  <data name="Comparison_Limited" xml:space="preserve"><value>全 {1} 件のうち {0} 件を表示しています。行の選択では表示対象は変わりません。</value></data>
   <data name="Comparison_Manual" xml:space="preserve"><value>選んだ {0} 件を表示しています（全 {1} 件）。</value></data>
   <data name="Comparison_All" xml:space="preserve"><value>全 {0} 件を表示しています。</value></data>
   <data name="Comparison_ColGroup" xml:space="preserve"><value>グループ</value></data>
@@ -285,7 +285,10 @@
   <data name="Values_Selection" xml:space="preserve"><value>選んだ組み合わせ: {0} → {1}</value></data>
   <data name="Values_NoPreset" xml:space="preserve"><value>（割り当てなし）</value></data>
   <data name="Values_NoSelection" xml:space="preserve"><value>組み合わせを選んでいません（上の表でセルを選んでください）</value></data>
-  <data name="Legend_Differs" xml:space="preserve"><value>先頭と違う</value></data>
+  <data name="Legend_Differs" xml:space="preserve"><value>選択中のプリセットと異なる値</value></data>
+  <data name="Comparison_SelectedMarker" xml:space="preserve"><value>選択中</value></data>
+  <data name="Comparison_SelectionOutside" xml:space="preserve"><value>選択中のプリセットは表示対象外です。</value></data>
+  <data name="Comparison_IncludeSelected" xml:space="preserve"><value>表示対象に追加</value></data>
   <data name="Legend_Unsaved" xml:space="preserve"><value>未保存 *</value></data>
   <data name="Legend_Missing" xml:space="preserve"><value>（未入力）</value></data>
   <data name="Legend_Unused" xml:space="preserve"><value>使用しない</value></data>
