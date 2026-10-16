@@ -22,10 +22,10 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
         Dock = DockStyle.Fill, View = View.Details, FullRowSelect = true, MultiSelect = false, HideSelection = false,
         HeaderStyle = ColumnHeaderStyle.Nonclickable,
     };
-    private readonly Label _categoryTitle = new() { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(4, 6, 4, 4) };
+    private readonly Label _categoryTitle = new() { AutoSize = true };
     private readonly Label _categoryLegend = new() { Dock = DockStyle.Bottom, AutoSize = true, Padding = new Padding(4), ForeColor = SystemColors.GrayText };
     private readonly Label _caption = new() { AutoSize = true, Margin = new Padding(4, 6, 16, 2) };
-    private readonly Label _rule = new() { AutoSize = true, Margin = new Padding(4, 6, 3, 2), ForeColor = SystemColors.GrayText };
+    private readonly Label _priorityHint = new() { AutoSize = true, ForeColor = UiAppearance.Muted, Anchor = AnchorStyles.Right };
     private readonly Button _add = new() { AutoSize = true };
     private readonly Button _remove = new() { AutoSize = true };
     private readonly Button _up = new() { AutoSize = true };
@@ -49,46 +49,67 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
     private IReadOnlyList<CategoryItemDisplay> _categories = [];
     private AssignmentTableDisplay? _shown;
     private bool _updating;
+    private readonly SplitContainer _sections = new() { Dock = DockStyle.Fill, Orientation = Orientation.Horizontal, SplitterWidth = 6, BackColor = SystemColors.Control };
+    public PresetComparisonView PresetManagement { get; } = new(managementMode: true);
+    public string? CurrentCategory => _shown?.Category;
+    public string? CurrentCategoryLabel => _shown?.CategoryLabel;
+    public event EventHandler? CategoryContextChanged;
+    public void ShowRules() => _grid.Focus();
+
 
     public AssignmentView()
     {
         Dock = DockStyle.Fill;
         Font = UiAppearance.BodyFont;
-        BackColor = UiAppearance.Background;
+        BackColor = SystemColors.Window;
         UiAppearance.ApplyGrid(_grid);
         _grid.RowHeadersDefaultCellStyle.BackColor = UiAppearance.Background;
         _grid.RowHeadersDefaultCellStyle.ForeColor = UiAppearance.Text;
         UiAppearance.ApplyNavigationList(_categoryList);
         foreach (Button button in new[] { _add, _remove, _up, _down }) UiAppearance.ApplyButton(button);
-        foreach (Label label in new[] { _categoryLegend, _rule, _info }) label.ForeColor = UiAppearance.Muted;
+        foreach (Label label in new[] { _categoryLegend, _info }) label.ForeColor = UiAppearance.Muted;
         // 左: カテゴリの一覧
         _categoryList.Columns.Add("", 150);
         _categoryList.Columns.Add("", 150);
-        Panel left = new() { Dock = DockStyle.Fill, BackColor = SystemColors.Control, Padding = new Padding(8) };
+        Panel left = new() { Dock = DockStyle.Fill, BackColor = SystemColors.Window, Padding = new Padding(8, 0, 8, 8) };
+        TableLayoutPanel categoryHeader = new() { Dock = DockStyle.Top, AutoSize = true };
+        UiAppearance.ArrangeSectionHeader(categoryHeader, [UiAppearance.SectionTitle(_categoryTitle)], []);
+        categoryHeader.BackColor = SystemColors.Window;
+        categoryHeader.Padding = new Padding(0, 4, 0, 4);
         left.Controls.Add(_categoryList);
         left.Controls.Add(_categoryLegend);
-        left.Controls.Add(_categoryTitle);
+        left.Controls.Add(categoryHeader);
 
         // 右上: 割り当ての行
-        FlowLayoutPanel header = new() { Dock = DockStyle.Top, AutoSize = true, WrapContents = true, Padding = new Padding(4, 2, 4, 0) };
-        header.Controls.AddRange([_caption, _rule]);
-        _caption.Font = UiAppearance.HeadingFont;
-        FlowLayoutPanel bar = new() { Dock = DockStyle.Top, AutoSize = true, WrapContents = true, Padding = new Padding(4, 0, 4, 2) };
+        TableLayoutPanel header = new() { Dock = DockStyle.Top, AutoSize = true };
+        UiAppearance.ArrangeSectionHeader(header, [UiAppearance.SectionTitle(_caption)], []);
+        header.BackColor = SystemColors.Window;
+        FlowLayoutPanel bar = new() { Dock = DockStyle.Fill, AutoSize = true, WrapContents = true, Margin = Padding.Empty };
+        TableLayoutPanel toolbar = new() { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 2, RowCount = 1, Padding = new Padding(8, 4, 8, 4) };
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        toolbar.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        _priorityHint.Margin = new Padding(8, 0, 0, 0);
+        toolbar.Controls.Add(bar, 0, 0);
+        toolbar.Controls.Add(_priorityHint, 1, 0);
+        foreach (Button button in new[] { _add, _up, _down, _remove }) button.Margin = new Padding(0, 0, 6, 0);
         bar.Controls.AddRange([_add, _up, _down, _remove]);
-        Panel rules = new() { Dock = DockStyle.Fill, BackColor = SystemColors.Control, Padding = new Padding(8) };
+        Panel rules = new() { Dock = DockStyle.Fill, BackColor = SystemColors.Window };
         rules.Controls.Add(_grid);
         rules.Controls.Add(_info);
-        rules.Controls.Add(bar);
+        rules.Controls.Add(toolbar);
         rules.Controls.Add(header);
         rules.Resize += (_, _) =>
         {
             int width = Math.Max(120, rules.ClientSize.Width - rules.Padding.Horizontal - 16);
-            _caption.MaximumSize = _rule.MaximumSize = _info.MaximumSize = new Size(width, 0);
+            _caption.MaximumSize = _info.MaximumSize = new Size(width, 0);
         };
 
-        SplitContainer outer = new() { Dock = DockStyle.Fill, FixedPanel = FixedPanel.Panel1, SplitterWidth = 6 };
+        SplitContainer outer = new() { Dock = DockStyle.Fill, FixedPanel = FixedPanel.Panel1, SplitterWidth = 6, BackColor = SystemColors.Control };
         outer.Panel1.Controls.Add(left);
-        outer.Panel2.Controls.Add(rules);
+        _sections.Panel1.Controls.Add(rules);
+        _sections.Panel2.Controls.Add(PresetManagement);
+        outer.Panel2.Controls.Add(_sections);
         Controls.Add(outer);
         _categoryList.Resize += (_, _) =>
         {
@@ -100,12 +121,15 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
         Load += (_, _) => BeginInvoke(() =>
         {
             if (IsDisposed) return;
+            _sections.Panel1MinSize = _sections.Panel2MinSize = LogicalToDeviceUnits(120);
+            _sections.SplitterDistance = Math.Max(_sections.Panel1MinSize, _sections.Height / 2);
             outer.SplitterDistance = Math.Min(LogicalToDeviceUnits(260), Math.Max(outer.Panel1MinSize, outer.Width / 3));
         });
 
         _categoryList.SelectedIndexChanged += (_, _) =>
         {
             if (_updating || _categoryList.SelectedIndices.Count == 0) return;
+            CommitPendingEdit();
             CategorySelected?.Invoke(this, new CategorySelectedEventArgs(_categories[_categoryList.SelectedIndices[0]].Key));
         };
         _add.Click += (_, _) => RowAdded?.Invoke(this, EventArgs.Empty);
@@ -136,13 +160,15 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
     public event EventHandler<AssignmentRowEventArgs>? RowRemoved;
     public event EventHandler<AssignmentMovedEventArgs>? RowMoved;
 
+
     public void ApplyTexts()
     {
+        PresetManagement.ApplyTexts();
+        _priorityHint.Text = UiText.Get("Assignment_PriorityHint");
         _categoryTitle.Text = UiText.Get("Assignment_Categories");
         _categoryLegend.Text = UiText.Get("Assignment_CategoryLegend");
         _categoryList.Columns[0].Text = UiText.Get("Assignment_ColCategory");
         _categoryList.Columns[1].Text = UiText.Get("Assignment_ColProblems");
-        _rule.Text = UiText.Get("Assignment_Rule");
         _add.Text = UiText.Get("Assignment_Add");
         _remove.Text = UiText.Get("Assignment_Remove");
         _up.Text = UiText.Get("Assignment_Up");
@@ -154,6 +180,7 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
     public void CommitPendingEdit()
     {
         if (_grid.IsCurrentCellInEditMode) _grid.EndEdit();
+        PresetManagement.CommitPendingEdit();
     }
 
     public void ShowCategories(IReadOnlyList<CategoryItemDisplay> categories, string? selected)
@@ -204,7 +231,10 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
     public void ShowAssignments(AssignmentTableDisplay table)
     {
         int currentColumn = _grid.CurrentCell?.ColumnIndex ?? 0;
+        bool categoryChanged = _shown?.Category != table.Category || _shown?.CategoryLabel != table.CategoryLabel;
         _shown = table;
+        _info.Visible = !table.Available || table.RuleNotFound;
+        if (categoryChanged) CategoryContextChanged?.Invoke(this, EventArgs.Empty);
         _updating = true;
         _grid.SuspendLayout();
         try
@@ -213,7 +243,7 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
             _grid.Rows.Clear();
             _grid.Columns.Clear();
             _grid.ReadOnly = !table.Editable;
-            _caption.Text = UiText.Format("Assignment_Caption", table.CategoryLabel);
+            _caption.Text = UiText.Format("Assignment_RulesCaption", table.CategoryLabel);
             if (!table.Available)
             {
                 _info.Text = UiText.Get("Assignment_Unavailable");
@@ -300,11 +330,7 @@ internal sealed class AssignmentView : UserControl, IAssignmentView
                 _grid.ClearSelection();
                 _grid.CurrentCell = null;
             }
-            int unreachable = table.Rows.Count(r => r.Unreachable);
-            _info.Text = unreachable > 0
-                ? UiText.Format("Assignment_CountWithUnreachable", table.Rows.Count, unreachable)
-                : UiText.Format("Assignment_Count", table.Rows.Count);
-            if (table.RuleNotFound) _info.Text = UiText.Get("Assignment_RuleNotFound");
+            _info.Text = table.RuleNotFound ? UiText.Get("Assignment_RuleNotFound") : "";
         }
         finally
         {

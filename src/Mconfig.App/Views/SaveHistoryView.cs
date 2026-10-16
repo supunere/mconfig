@@ -1,4 +1,4 @@
-using Mconfig.App.Resources;
+﻿using Mconfig.App.Resources;
 using Mconfig.Application.History;
 using Mconfig.Application.Ports;
 using Mconfig.Application.Releases.Queries;
@@ -121,6 +121,7 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         _revisions.Columns.Add("", 145);
         _revisions.Columns.Add("", 90);
         _revisions.Columns.Add("", 260);
+        _revisions.Columns[0].DisplayIndex = 3;
         AddChangeColumns(_changes);
         TableLayoutPanel history = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5 };
         history.RowStyles.Add(new RowStyle(SizeType.Percent, 50));

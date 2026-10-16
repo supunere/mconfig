@@ -29,9 +29,9 @@
   <data name="Button_OK" xml:space="preserve"><value>OK</value></data>
   <data name="Button_Cancel" xml:space="preserve"><value>キャンセル</value></data>
   <data name="Status_Unsaved" xml:space="preserve"><value>未保存の変更があります</value></data>
-  <data name="Status_Saved" xml:space="preserve"><value>一時保存済み</value></data>
-  <data name="Status_Uncommitted" xml:space="preserve"><value>履歴に未保存</value></data>
-  <data name="Status_Committed" xml:space="preserve"><value>履歴に保存済み</value></data>
+  <data name="Status_Saved" xml:space="preserve"><value>保存済み</value></data>
+  <data name="Status_Uncommitted" xml:space="preserve"><value>履歴に未記録</value></data>
+  <data name="Status_Committed" xml:space="preserve"><value>履歴に記録済み</value></data>
   <data name="Status_ReadOnly" xml:space="preserve"><value>読み取り専用（別のアプリが編集中）</value></data>
   <data name="Status_RecoveryPending" xml:space="preserve"><value>復旧待ち（保存が途中で止まりました）</value></data>
   <data name="Status_Saving" xml:space="preserve"><value>保存中...</value></data>
@@ -64,13 +64,13 @@
 {0}
 
 読み込みと検証を確かめたバックアップと過去の確定版があります。復元するものを選んでください。バックアップは設定ファイルだけを、確定版は設定・仕様・スキーマの一式を戻します。</value></data>
-  <data name="Recovery_Note" xml:space="preserve"><value>書き換える現在のファイルは recovery フォルダへ退避し、削除しません。復元した内容は未確定の変更として開くので、確認してから変更理由を付けて「履歴に保存」してください。</value></data>
+  <data name="Recovery_Note" xml:space="preserve"><value>書き換える現在のファイルは recovery フォルダへ退避し、削除しません。復元した内容は未確定の変更として開くので、確認してから変更理由を付けて「履歴に残す」を実行してください。</value></data>
   <data name="Recovery_Restore" xml:space="preserve"><value>復元して開く</value></data>
   <data name="Recovery_FromCommit" xml:space="preserve"><value>{0}  確定版 {1}（一式）  {2}</value></data>
   <data name="Recovery_FromFile" xml:space="preserve"><value>{0}  設定ファイルのバックアップ {1}</value></data>
-  <data name="Recovery_Restored" xml:space="preserve"><value>復元しました。内容を確認し、変更理由を付けて「履歴に保存」してください。</value></data>
+  <data name="Recovery_Restored" xml:space="preserve"><value>復元しました。内容を確認し、変更理由を付けて「履歴に残す」を実行してください。</value></data>
   <data name="Menu_File" xml:space="preserve"><value>ファイル(&amp;F)</value></data>
-  <data name="Menu_SaveDraft" xml:space="preserve"><value>一時保存(&amp;S)</value></data>
+  <data name="Menu_SaveDraft" xml:space="preserve"><value>保存(&amp;S)</value></data>
   <data name="Menu_Exit" xml:space="preserve"><value>終了(&amp;X)</value></data>
   <data name="Button_CopyDetails" xml:space="preserve"><value>詳細をコピー</value></data>
   <data name="Severity_Error" xml:space="preserve"><value>エラー</value></data>
@@ -113,21 +113,21 @@
   <data name="Assignment_Count" xml:space="preserve"><value>{0} 行。上の行ほど優先されます。</value></data>
   <data name="Assignment_CountWithUnreachable" xml:space="preserve"><value>{0} 行。上の行ほど優先されます。⚠ の {1} 行は上の行に覆われて使われません。</value></data>
   <data name="Assignment_UnreachableTip" xml:space="preserve"><value>この行は上の行に覆われているため使われません。順序か条件を見直してください。</value></data>
-  <data name="Leave_UnsavedTab" xml:space="preserve"><value>一時保存していない変更が {0} 件あります。
-画面を切り替える前に一時保存しますか？「保存しない」を選ぶと、{0} 件の変更は失われます。</value></data>
-  <data name="Leave_UnsavedExit" xml:space="preserve"><value>一時保存していない変更が {0} 件あります。
-終了する前に一時保存しますか？「保存しない」を選ぶと、{0} 件の変更は失われます。</value></data>
-  <data name="Leave_Save" xml:space="preserve"><value>一時保存(&amp;S)</value></data>
+  <data name="Leave_UnsavedTab" xml:space="preserve"><value>保存していない変更が {0} 件あります。
+画面を切り替える前に保存しますか？「保存しない」を選ぶと、{0} 件の変更は失われます。</value></data>
+  <data name="Leave_UnsavedExit" xml:space="preserve"><value>保存していない変更が {0} 件あります。
+終了する前に保存しますか？「保存しない」を選ぶと、{0} 件の変更は失われます。</value></data>
+  <data name="Leave_Save" xml:space="preserve"><value>保存(&amp;S)</value></data>
   <data name="Leave_Discard" xml:space="preserve"><value>保存しない(&amp;N)</value></data>
-  <data name="Leave_UncommittedExit" xml:space="preserve"><value>履歴に保存していない変更があります。変更は一時保存されていて、次回起動時にも残ります。終了しますか？</value></data>
+  <data name="Leave_UncommittedExit" xml:space="preserve"><value>履歴に残していない変更があります。変更は保存されていて、次回起動時にも残ります。終了しますか？</value></data>
   <data name="Leave_Busy" xml:space="preserve"><value>保存・出力などの処理中です。完了してからもう一度操作してください。</value></data>
   <data name="Data_SaveGroup" xml:space="preserve"><value>保存</value></data>
   <data name="Data_Validate" xml:space="preserve"><value>検証</value></data>
-  <data name="Data_SaveDraft" xml:space="preserve"><value>一時保存</value></data>
+  <data name="Data_SaveDraft" xml:space="preserve"><value>保存</value></data>
   <data name="Data_Discard" xml:space="preserve"><value>編集を破棄</value></data>
-  <data name="Data_DiscardConfirm" xml:space="preserve"><value>一時保存していない編集を破棄し、最後に一時保存した内容に戻しますか？</value></data>
+  <data name="Data_DiscardConfirm" xml:space="preserve"><value>保存していない編集を破棄し、最後に保存した内容に戻しますか？</value></data>
   <data name="Data_Reason" xml:space="preserve"><value>変更理由:</value></data>
-  <data name="Data_Commit" xml:space="preserve"><value>履歴に保存</value></data>
+  <data name="Data_Commit" xml:space="preserve"><value>履歴に残す</value></data>
   <data name="Data_ValidationGroup" xml:space="preserve"><value>検証結果</value></data>
   <data name="Data_CopyIssues" xml:space="preserve"><value>診断をコピー</value></data>
   <data name="Data_ColSeverity" xml:space="preserve"><value>重要度</value></data>
@@ -161,9 +161,9 @@
   <data name="Confirm_Proceed" xml:space="preserve"><value>このまま続けますか？</value></data>
   <data name="Restore_Title" xml:space="preserve"><value>版の復元</value></data>
   <data name="Restore_Message" xml:space="preserve"><value>{0}（{1}）の版「{2}」に戻します。現在の内容との違いは {3} 件です。</value></data>
-  <data name="Restore_Choice_Restore" xml:space="preserve"><value>復元すると、一時保存の内容がこの版になります。履歴に残すには、復元後に変更理由を入力して「履歴に保存」してください。</value></data>
-  <data name="Restore_Choice_RestoreByDiscarding" xml:space="preserve"><value>履歴に保存していない変更があります。復元するとその変更は破棄されます（現在のファイルは復旧用の領域に退避されます）。履歴に残すには、復元後に「履歴に保存」してください。</value></data>
-  <data name="Restore_Choice_SaveOrDiscardFirst" xml:space="preserve"><value>一時保存していない編集があるため、いまは復元できません。先に一時保存するか、編集を破棄してください。</value></data>
+  <data name="Restore_Choice_Restore" xml:space="preserve"><value>復元すると、保存済みの内容がこの版に置き換わります。履歴に残すには、復元後に変更理由を入力して「履歴に残す」を実行してください。</value></data>
+  <data name="Restore_Choice_RestoreByDiscarding" xml:space="preserve"><value>履歴に残していない変更があります。復元するとその変更は破棄されます（現在のファイルは復旧用の領域に退避されます）。履歴に残すには、復元後に「履歴に残す」を実行してください。</value></data>
+  <data name="Restore_Choice_SaveOrDiscardFirst" xml:space="preserve"><value>保存していない編集があるため、いまは復元できません。先に保存するか、編集を破棄してください。</value></data>
   <data name="Restore_Choice_Unavailable" xml:space="preserve"><value>この版は復元できません（内容に問題があるか、保存中・読み取り専用・復旧待ちです）。</value></data>
   <data name="Export_Run" xml:space="preserve"><value>出力する</value></data>
   <data name="Export_CompareLabel" xml:space="preserve"><value>比較元:</value></data>
@@ -171,29 +171,29 @@
   <data name="Export_CompareTo" xml:space="preserve"><value>比較元: {0}（{1} に公開）</value></data>
   <data name="Export_NoCompareTo" xml:space="preserve"><value>比較元なし（すべてを新規として報告）</value></data>
   <data name="Export_Summary" xml:space="preserve"><value>含まれる保存: {0} 件、変更: {1} 件</value></data>
-  <data name="Export_Uncommitted" xml:space="preserve"><value>履歴に保存していない変更 {0} 件も含まれます。</value></data>
-  <data name="Export_NeedsDraftSave" xml:space="preserve"><value>出力の前に、現在の編集を一時保存します。</value></data>
+  <data name="Export_Uncommitted" xml:space="preserve"><value>履歴に残していない変更 {0} 件も含まれます。</value></data>
+  <data name="Export_NeedsDraftSave" xml:space="preserve"><value>出力の前に、現在の編集を保存します。</value></data>
   <data name="Export_ApproveWarnings" xml:space="preserve"><value>出力すると、上の警告を確認したものとして扱います。</value></data>
   <data name="Export_Blocker_ReadOnly" xml:space="preserve"><value>読み取り専用で開いているため出力できません。</value></data>
   <data name="Export_Blocker_RecoveryPending" xml:space="preserve"><value>復旧待ちのため出力できません。アプリを再起動して復旧してください。</value></data>
   <data name="Export_Blocker_Saving" xml:space="preserve"><value>保存中のため出力できません。完了してからもう一度操作してください。</value></data>
-  <data name="Export_Blocker_UncommittedChanges" xml:space="preserve"><value>履歴に保存していない変更があるため、リリース版を出力できません。先に「履歴に保存」してください。</value></data>
-  <data name="Export_Blocker_NoCommit" xml:space="preserve"><value>まだ履歴に保存した版がないため、リリース版を出力できません。先に「履歴に保存」してください。</value></data>
+  <data name="Export_Blocker_UncommittedChanges" xml:space="preserve"><value>履歴に残していない変更があるため、リリース版を出力できません。先に「履歴に残す」を実行してください。</value></data>
+  <data name="Export_Blocker_NoCommit" xml:space="preserve"><value>まだ履歴に残した版がないため、リリース版を出力できません。先に「履歴に残す」を実行してください。</value></data>
   <data name="Export_Blocker_ValidationErrors" xml:space="preserve"><value>内容にエラーがあるため出力できません。データ管理で検証結果を確認してください。</value></data>
-  <data name="Operation_SaveDraft" xml:space="preserve"><value>一時保存</value></data>
+  <data name="Operation_SaveDraft" xml:space="preserve"><value>保存</value></data>
   <data name="Operation_Discard" xml:space="preserve"><value>編集の破棄</value></data>
-  <data name="Operation_Commit" xml:space="preserve"><value>履歴に保存</value></data>
+  <data name="Operation_Commit" xml:space="preserve"><value>履歴に残す</value></data>
   <data name="Operation_Restore" xml:space="preserve"><value>復元</value></data>
   <data name="Operation_ExportTest" xml:space="preserve"><value>テスト版の出力</value></data>
   <data name="Operation_ExportRelease" xml:space="preserve"><value>リリース版の出力</value></data>
   <data name="Operation_ResumeExport" xml:space="preserve"><value>出力の再開</value></data>
-  <data name="Result_Committed" xml:space="preserve"><value>履歴に保存しました。</value></data>
-  <data name="Result_DraftSaved" xml:space="preserve"><value>一時保存しました（まだ履歴には保存していません）。</value></data>
-  <data name="Result_Discarded" xml:space="preserve"><value>編集を破棄し、最後に一時保存した内容に戻しました。</value></data>
-  <data name="Result_Restored" xml:space="preserve"><value>版を復元しました。履歴に残すには、変更理由を入力して「履歴に保存」してください。</value></data>
+  <data name="Result_Committed" xml:space="preserve"><value>履歴に残しました。</value></data>
+  <data name="Result_DraftSaved" xml:space="preserve"><value>保存しました（まだ履歴には残していません）。</value></data>
+  <data name="Result_Discarded" xml:space="preserve"><value>編集を破棄し、最後に保存した内容に戻しました。</value></data>
+  <data name="Result_Restored" xml:space="preserve"><value>版を復元しました。履歴に残すには、変更理由を入力して「履歴に残す」を実行してください。</value></data>
   <data name="Result_Exported" xml:space="preserve"><value>出力しました: {0}</value></data>
   <data name="Result_NoChanges" xml:space="preserve"><value>変更はありません。</value></data>
-  <data name="Result_NoChangesCommit" xml:space="preserve"><value>履歴に保存する変更はありません。</value></data>
+  <data name="Result_NoChangesCommit" xml:space="preserve"><value>履歴に残す変更はありません。</value></data>
   <data name="Result_ValidationFailed" xml:space="preserve"><value>{0}できませんでした。内容にエラーがあります。データ管理で検証結果を確認してください。</value></data>
   <data name="Result_NotConfirmed" xml:space="preserve"><value>{0}を取りやめました。</value></data>
   <data name="Result_Conflict" xml:space="preserve"><value>{0}できませんでした。表示の後に内容またはファイルが変わっています。最新の状態を確認してから、もう一度操作してください。</value></data>
@@ -201,8 +201,8 @@
   <data name="Result_Canceled" xml:space="preserve"><value>{0}を取り消しました。何も変更していません。</value></data>
   <data name="Result_RecoveryPending" xml:space="preserve"><value>{0}の途中で結果を確認できなくなりました。アプリを再起動すると復旧を確認します。</value></data>
   <data name="Result_TechnicalFailure" xml:space="preserve"><value>{0}できませんでした。ファイルへの書き込みなどで問題が起きました。詳細をコピーして管理者に連絡してください。</value></data>
-  <data name="Result_DraftSavedButNotCommitted" xml:space="preserve"><value>一時保存は完了していますが、履歴への保存は完了していません。もう一度「履歴に保存」してください。</value></data>
-  <data name="Result_DraftSavedOnly" xml:space="preserve"><value>一時保存は完了しています。</value></data>
+  <data name="Result_DraftSavedButNotCommitted" xml:space="preserve"><value>保存は完了していますが、履歴への記録は完了していません。もう一度「履歴に残す」を実行してください。</value></data>
+  <data name="Result_DraftSavedOnly" xml:space="preserve"><value>保存は完了しています。</value></data>
   <data name="Issue_InvalidStructure" xml:space="preserve"><value>プリセットまたは割り当ての構造が正しくないため、編集できません。バックアップからの復元を検討してください。</value></data>
   <data name="Issue_InvalidPresetName" xml:space="preserve"><value>プリセット名「{0}」が空か重複しています。別の名前に変えてください。</value></data>
   <data name="Issue_MissingSchema" xml:space="preserve"><value>このカテゴリに対応するスキーマがありません。スキーマを追加するか、カテゴリを見直してください。</value></data>
@@ -219,9 +219,9 @@
   <data name="Issue_OrphanGroup" xml:space="preserve"><value>スキーマにないグループです。内容はそのまま残しています。</value></data>
   <data name="Issue_OrphanRow" xml:space="preserve"><value>スキーマにない行です。内容はそのまま残しています。</value></data>
   <data name="Issue_OrphanColumn" xml:space="preserve"><value>スキーマにない列です。内容はそのまま残しています。</value></data>
-  <data name="Issue_MissingGroup" xml:space="preserve"><value>グループがありません（「使用しない」とも示されていません）。「履歴に保存」の前に、元のデータでグループの値を入れるか null（使用しない）にしてください。</value></data>
-  <data name="Issue_BlankRow" xml:space="preserve"><value>行の値が入力されていません。「履歴に保存」の前に入力してください。</value></data>
-  <data name="Issue_BlankCell" xml:space="preserve"><value>値が入力されていません。「履歴に保存」の前に入力してください。</value></data>
+  <data name="Issue_MissingGroup" xml:space="preserve"><value>グループがありません（「使用しない」とも示されていません）。「履歴に残す」の前に、元のデータでグループの値を入れるか null（使用しない）にしてください。</value></data>
+  <data name="Issue_BlankRow" xml:space="preserve"><value>行の値が入力されていません。「履歴に残す」の前に入力してください。</value></data>
+  <data name="Issue_BlankCell" xml:space="preserve"><value>値が入力されていません。「履歴に残す」の前に入力してください。</value></data>
   <data name="Issue_UnsupportedRow" xml:space="preserve"><value>行の構造が編集できない形式です。元のデータを確認してください。</value></data>
   <data name="Issue_UnsupportedCell" xml:space="preserve"><value>値が編集できない形式です。元のデータを確認してください。</value></data>
   <data name="Issue_UncoveredCombinations" xml:space="preserve"><value>どの割り当て行にも当てはまらない組み合わせが {0} 件あります。必要なら割り当て行を追加してください。</value></data>
@@ -261,7 +261,7 @@
   <data name="ScreenMenu_History" xml:space="preserve"><value>保存と履歴(&amp;3)</value></data>
   <data name="ScreenMenu_Export" xml:space="preserve"><value>出力(&amp;4)</value></data>
   <data name="Menu_HideValues" xml:space="preserve"><value>値を隠す(&amp;H)</value></data>
-  <data name="Tool_SaveDraft" xml:space="preserve"><value>一時保存</value></data>
+  <data name="Tool_SaveDraft" xml:space="preserve"><value>保存</value></data>
   <data name="Tool_Validate" xml:space="preserve"><value>検証</value></data>
   <data name="Title_Unsaved" xml:space="preserve"><value>（未保存の変更あり）</value></data>
   <data name="Filter_Clear" xml:space="preserve"><value>絞り込みを解除</value></data>
@@ -287,7 +287,7 @@
   <data name="Status_UnsavedCount" xml:space="preserve"><value>未保存の変更: {0} 件</value></data>
   <data name="Status_Errors" xml:space="preserve"><value>エラー {0} 件</value></data>
   <data name="Status_Unassigned" xml:space="preserve"><value>未割当 {0} 件</value></data>
-  <data name="Status_ErrorsTip" xml:space="preserve"><value>履歴に保存できなくなるエラーの件数です。クリックすると検証結果を表示します。</value></data>
+  <data name="Status_ErrorsTip" xml:space="preserve"><value>履歴に残せなくなるエラーの件数です。クリックすると検証結果を表示します。</value></data>
   <data name="Status_UnassignedTip" xml:space="preserve"><value>どの割り当てにも一致しない組み合わせとカテゴリの件数です。クリックすると割り当て画面を開きます。</value></data>
   <data name="SharedEdit_Title" xml:space="preserve"><value>値の変更</value></data>
   <data name="SharedEdit_Separator" xml:space="preserve"><value>、</value></data>
@@ -309,7 +309,7 @@
   <data name="Assignment_StateUnreachable" xml:space="preserve"><value>使われない（上の行が優先）</value></data>
   <data name="Assignment_StateUnsaved" xml:space="preserve"><value>（追加・変更した行・未保存）</value></data>
   <data name="Assignment_ChangesTitle" xml:space="preserve"><value>この変更で割り当て先が変わる組み合わせ</value></data>
-  <data name="Assignment_ComparedWithDraft" xml:space="preserve"><value>前回の一時保存と比べています</value></data>
+  <data name="Assignment_ComparedWithDraft" xml:space="preserve"><value>前回の保存と比べています</value></data>
   <data name="Assignment_ChangedOnly" xml:space="preserve"><value>変わるものだけ（{0} 件）</value></data>
   <data name="Assignment_AllCombinations" xml:space="preserve"><value>すべて（{0} 件）</value></data>
   <data name="Assignment_ColBefore" xml:space="preserve"><value>変更前</value></data>
@@ -323,21 +323,21 @@
   <data name="Assignment_GuideTitle" xml:space="preserve"><value>一部の組み合わせだけ別の値にするとき</value></data>
   <data name="Assignment_Guide" xml:space="preserve"><value>① 「組み合わせと値」でプリセットを複製し、値を変える
 ② ここで「行を追加」し、対象の組み合わせだけに一致する条件と①のプリセットを選んで、「上へ」で上に移す
-③ 「変わるもの」が意図した組み合わせだけになっていることを確かめて、一時保存</value></data>
+③ 「変わるもの」が意図した組み合わせだけになっていることを確かめて、保存</value></data>
   <data name="Data_GoToIssue" xml:space="preserve"><value>該当箇所へ移動</value></data>
   <data name="Data_GoToIssueHint" xml:space="preserve"><value>項目を選んで「該当箇所へ移動」（またはダブルクリック）で、直す画面を開きます。</value></data>
   <data name="Data_ValidationGroupCount" xml:space="preserve"><value>検証結果（エラー {0} 件・警告 {1} 件）</value></data>
-  <data name="Data_UncommittedGroup" xml:space="preserve"><value>前回の履歴保存からの変更</value></data>
-  <data name="Data_UncommittedGroupCount" xml:space="preserve"><value>前回の履歴保存からの変更（{0} 件）</value></data>
-  <data name="Data_UncommittedUnavailable" xml:space="preserve"><value>前回の履歴保存の内容を読めませんでした</value></data>
+  <data name="Data_UncommittedGroup" xml:space="preserve"><value>前回の記録からの変更</value></data>
+  <data name="Data_UncommittedGroupCount" xml:space="preserve"><value>前回の記録からの変更（{0} 件）</value></data>
+  <data name="Data_UncommittedUnavailable" xml:space="preserve"><value>前回の記録内容を読めませんでした</value></data>
   <data name="Data_Author" xml:space="preserve"><value>作成者: {0}（Windows のユーザー名）</value></data>
-  <data name="Data_CommitBlocked" xml:space="preserve"><value>エラーが {0} 件あるため保存できません。検証結果から該当箇所へ移って直してください。</value></data>
-  <data name="Data_NothingToCommit" xml:space="preserve"><value>履歴に保存する変更はありません。</value></data>
+  <data name="Data_CommitBlocked" xml:space="preserve"><value>エラーが {0} 件あるため履歴に残せません。検証結果から該当箇所へ移って直してください。</value></data>
+  <data name="Data_NothingToCommit" xml:space="preserve"><value>履歴に残す変更はありません。</value></data>
   <data name="Data_RevisionChanges" xml:space="preserve"><value>選択中の版の変更</value></data>
   <data name="Data_CompareWithCurrent" xml:space="preserve"><value>現在との違い...</value></data>
   <data name="Data_CompareWithCurrentTitle" xml:space="preserve"><value>現在との違い</value></data>
   <data name="Data_CompareWithCurrentMessage" xml:space="preserve"><value>{0} の版（{1}「{2}」）から現在の内容までの違い: {3} 件</value></data>
-  <data name="Tool_Commit" xml:space="preserve"><value>履歴に保存...</value></data>
+  <data name="Tool_Commit" xml:space="preserve"><value>履歴に残す...</value></data>
   <data name="Combination_Large" xml:space="preserve"><value>組み合わせが {0} 件あります（5 万件を超えています）。一覧は見えている行だけを求めますが、検証や割り当ての集計には時間がかかります。絞り込むと速くなります。</value></data>
   <data name="Combination_LargeTruncated" xml:space="preserve"><value>組み合わせが {0} 件あり、表示できるのは先頭の {1} 件までです。絞り込んでください。</value></data>
   <data name="Status_UnassignedNotCounted" xml:space="preserve"><value>未割当: 検証で確認</value></data>
@@ -350,7 +350,7 @@
   <data name="Progress_Starting" xml:space="preserve"><value>{0}: 準備しています…</value></data>
   <data name="Progress_Checking" xml:space="preserve"><value>{0}: 組み合わせを調べています {1} / {2}（{3}%）</value></data>
   <data name="Progress_Cancel" xml:space="preserve"><value>中止</value></data>
-  <data name="Data_ValidationIncomplete" xml:space="preserve"><value>検証未完了（途中で中止しました）。この結果では履歴に保存・出力の判断はできません。もう一度「検証」を押してください。</value></data>
+  <data name="Data_ValidationIncomplete" xml:space="preserve"><value>検証未完了（途中で中止しました）。この結果では履歴に残す・出力の判断はできません。もう一度「検証」を押してください。</value></data>
   <data name="Data_ExportUncovered" xml:space="preserve"><value>未割当の一覧を CSV に出力...</value></data>
   <data name="Csv_Title" xml:space="preserve"><value>未割当の一覧の出力</value></data>
   <data name="Csv_Filter" xml:space="preserve"><value>CSV ファイル (*.csv)|*.csv</value></data>
@@ -358,9 +358,9 @@
 {1}</value></data>
   <data name="Csv_Canceled" xml:space="preserve"><value>出力を中止しました。既存のファイルは変更していません。</value></data>
   <data name="Csv_Failed" xml:space="preserve"><value>ファイルに書き出せませんでした: {0}</value></data>
-  <data name="Error_Unexpected" xml:space="preserve"><value>予期しないエラーが発生しました。作業中の内容は失われていない可能性があります。「一時保存」を試し、解決しなければアプリを再起動してください。詳しい情報はワークスペースの logs フォルダのログに残っています。</value></data>
-  <data name="Reason_RestoreNeedsNoPendingChanges" xml:space="preserve"><value>未保存または未コミットの変更があります。先に一時保存か破棄をするか、未コミットの変更を破棄して復元してください。</value></data>
-  <data name="Reason_ReleaseNeedsCommittedHead" xml:space="preserve"><value>未確定の変更があるか、履歴に保存した版がありません。先に履歴に保存してください。</value></data>
+  <data name="Error_Unexpected" xml:space="preserve"><value>予期しないエラーが発生しました。作業中の内容は失われていない可能性があります。「保存」を試し、解決しなければアプリを再起動してください。詳しい情報はワークスペースの logs フォルダのログに残っています。</value></data>
+  <data name="Reason_RestoreNeedsNoPendingChanges" xml:space="preserve"><value>未保存、または履歴に残していない変更があります。先に保存か破棄をするか、履歴に残していない変更を破棄して復元してください。</value></data>
+  <data name="Reason_ReleaseNeedsCommittedHead" xml:space="preserve"><value>未確定の変更があるか、履歴に残した版がありません。先に履歴に残してください。</value></data>
   <data name="Reason_ChangedAfterPreview" xml:space="preserve"><value>プレビューの後に内容が変わりました。もう一度プレビューで確認してください。</value></data>
   <data name="Reason_FilesChangedOutside" xml:space="preserve"><value>ワークスペースのファイルが、このアプリの外で変更されています。アプリを起動し直して読み込み直してください。</value></data>
   <data name="Export_PendingProblem_DamagedJournal" xml:space="preserve"><value>出力の記録が壊れているため、完了を確認できず再開できません。復旧用のファイルは残っています。記録を保全し、管理者に復旧を依頼してください。</value></data>
@@ -368,7 +368,7 @@
   <data name="Export_PendingProblem_ListUnavailable" xml:space="preserve"><value>中断した出力の一覧を読み取れませんでした。表示されていない未完了の出力がある可能性があります。復旧フォルダの場所とアクセス権を確認し、出力画面を開き直してください。</value></data>
   <data name="Export_OperationId" xml:space="preserve"><value>操作ID: {0}</value></data>
   <data name="Tool_Save" xml:space="preserve"><value>保存</value></data>
-  <data name="Tool_SaveTip" xml:space="preserve"><value>一時保存 (Ctrl+S)。履歴に残すには、メニューから「履歴に保存」を選んでください。</value></data>
+  <data name="Tool_SaveTip" xml:space="preserve"><value>保存 (Ctrl+S)。変更理由を付けて版を残すには、メニューから「履歴に残す」を選んでください。</value></data>
   <data name="Tool_Changes" xml:space="preserve"><value>● {0} 件の変更</value></data>
   <data name="Tool_Discard" xml:space="preserve"><value>未保存の変更を破棄...</value></data>
   <data name="Status_NoErrors" xml:space="preserve"><value>✓ エラーなし</value></data>
@@ -387,5 +387,8 @@
   <data name="Output_NoPending" xml:space="preserve"><value>未完了の出力はありません。</value></data>
   <data name="Output_PendingNeedsAttention" xml:space="preserve"><value>再開できる出力はありません。下の復旧情報を確認してください。</value></data>
   <data name="Comparison_EditHint" xml:space="preserve"><value>ダブルクリックまたはF2で編集できます。</value></data>
+  <data name="Assignment_RulesCaption" xml:space="preserve"><value>{0}の割り当てルール</value></data>
+  <data name="Assignment_PresetsCaption" xml:space="preserve"><value>{0}のプリセット管理</value></data>
+  <data name="Assignment_PriorityHint" xml:space="preserve"><value>上の行ほど優先されます</value></data>
 </root>
 

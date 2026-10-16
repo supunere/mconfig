@@ -92,6 +92,34 @@ public sealed class PresetComparisonSelectionTests
         Assert.Equal(3, f.View.SharedEditConfirmations);
     }
 
+    [Fact]
+    public async Task ManagementUsesAllPresetsWithoutCombinationBaselineAndSupportsLifecycle()
+    {
+        using Fixture f = await Fixture.CreateAsync();
+        f.Select("CPU・基本構成");
+        await f.Presenter.SelectManagementCategoryAsync("cpu", "CPU");
+        Assert.Equal("CPU", f.View.Display!.CategoryLabel);
+        Assert.Null(f.View.Display.SelectedPreset);
+        Assert.All(f.View.Display.Columns, c => Assert.False(c.AssignedToSelection));
+        Assert.All(f.View.Display.Rows.SelectMany(r => r.Cells), c => Assert.False(c.DiffersFromSelectedPreset));
+        f.View.NameAnswer = "CPU・試作";
+        f.View.Operate(PresetOperation.Duplicate, "CPU・基本構成");
+        await f.Presenter.RefreshAsync();
+        Assert.Contains("CPU・試作", f.View.Display.AllPresets);
+        f.View.NameAnswer = "CPU・新構成";
+        f.View.Operate(PresetOperation.Rename, "CPU・試作");
+        await f.Presenter.RefreshAsync();
+        Assert.Contains("CPU・新構成", f.View.Display.AllPresets);
+        Assert.DoesNotContain("CPU・試作", f.View.Display.AllPresets);
+        f.View.AllowDelete = true;
+        f.View.Operate(PresetOperation.Delete, "CPU・新構成");
+        await f.Presenter.RefreshAsync();
+        Assert.DoesNotContain("CPU・新構成", f.View.Display.AllPresets);
+        await f.Presenter.SelectManagementCategoryAsync("memory", "メモリ");
+        Assert.Equal("メモリ", f.View.Display.CategoryLabel);
+        Assert.Equal(f.View.Display.AllPresets, f.View.Display.Columns.Select(c => c.Name));
+    }
+
     private sealed class Fixture(string root, WorkspaceLock editLock, EditSession session) : IDisposable
     {
         public EditSession Session { get; } = session;
@@ -150,8 +178,11 @@ public sealed class PresetComparisonSelectionTests
 #pragma warning restore CS0067
         public void Choose(IReadOnlyList<string>? presets) => PresetsChosen?.Invoke(this, new(presets));
         public void ShowComparison(ComparisonDisplay comparison) => Display = comparison;
-        public string? AskPresetName(PresetNamePrompt prompt) => null;
-        public bool ConfirmDeletePreset(string preset) => false;
+        public string? NameAnswer { get; set; }
+        public bool AllowDelete { get; set; }
+        public void Operate(PresetOperation operation, string? preset) => PresetOperationRequested?.Invoke(this, new(operation, preset));
+        public string? AskPresetName(PresetNamePrompt prompt) => NameAnswer;
+        public bool ConfirmDeletePreset(string preset) => AllowDelete;
         public bool AllowSharedEdit { get; set; }
         public int SharedEditConfirmations { get; private set; }
         public CellEditStartingEventArgs StartEdit(string preset)

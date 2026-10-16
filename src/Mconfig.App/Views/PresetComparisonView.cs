@@ -7,7 +7,7 @@ namespace Mconfig.App.Views;
 
 /// <summary>
 /// 値の表（プリセット比較と値の編集）。プリセットの列順を保ち、組み合わせの割り当て先を見出しで強調する。
-/// 上端にカテゴリ名と表示対象の選択を置く。プリセット管理はメニューにまとめる。セルの状態は色と文言の両方で区別する:
+/// 上端にカテゴリ名と表示対象の選択を置く。管理モードでは表示対象を固定し、管理操作を置く。セルの状態は色と文言の両方で区別する:
 /// 未入力（淡い赤と「（未入力）」）、使用しない（灰色と「使用しない」）、未保存の変更（太字と「*」）、選択中のプリセットと違う値（淡い黄）。
 /// 初期表示は全プリセット。「表示するプリセット」から表示対象を選べる。
 /// セルの確定と Ctrl+V の矩形貼り付けは Presenter へ知らせるだけで、表示は Presenter が結果に応じて描き直す。
@@ -24,11 +24,10 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
     private readonly Button _hide = new() { AutoSize = true, Anchor = AnchorStyles.Right, Margin = new Padding(6, 0, 0, 0) };
     private readonly Label _legendDiff = Legend(DiffBack);
     private readonly Button _choose = new() { AutoSize = true, Margin = new Padding(16, 3, 3, 3) };
-    private readonly ToolStripDropDownButton _manage = new() { DisplayStyle = ToolStripItemDisplayStyle.Text, Margin = Padding.Empty, Padding = new Padding(3) };
-    private readonly ToolStripMenuItem _add = new();
-    private readonly ToolStripMenuItem _duplicate = new();
-    private readonly ToolStripMenuItem _rename = new();
-    private readonly ToolStripMenuItem _delete = new();
+    private readonly Button _add = new();
+    private readonly Button _duplicate = new();
+    private readonly Button _rename = new();
+    private readonly Button _delete = new();
     private readonly Label _info = new() { Dock = DockStyle.Bottom, AutoSize = true, Padding = new Padding(4) };
     private readonly FlowLayoutPanel _selectionNotice = new() { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(8, 2, 8, 6), Visible = false };
     private readonly Label _selectionOutside = new() { AutoSize = true, Margin = new Padding(3, 7, 8, 3) };
@@ -50,6 +49,7 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
 
     private readonly Panel _body = new() { Dock = DockStyle.Fill };
     private readonly TableLayoutPanel _captionBar = new() { Dock = DockStyle.Top, AutoSize = true };
+    private readonly bool _managementMode;
     private bool _contentHidden;
     private ComparisonDisplay? _shown;
     // 入力中に届いた最新の表示。入力が終わったら表示する
@@ -59,8 +59,9 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
     private bool _cellsEdited;
     private bool _widthsDirty = true;
 
-    public PresetComparisonView()
+    public PresetComparisonView(bool managementMode = false)
     {
+        _managementMode = managementMode;
         Dock = DockStyle.Fill;
         Font = UiAppearance.BodyFont;
         BackColor = SystemColors.Window;
@@ -68,22 +69,23 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         // プリセット名と選択中の表示を二段にし、行の選択で見出しの高さを変えない。
         _grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
         _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-        _grid.ColumnHeadersHeight = LogicalToDeviceUnits(44);
-        foreach (Button button in new[] { _hide, _includeSelected, _choose }) UiAppearance.ApplyButton(button);
+        _grid.ColumnHeadersHeight = LogicalToDeviceUnits(_managementMode ? 26 : 44);
+        foreach (Button button in new[] { _hide, _includeSelected, _choose, _add, _duplicate, _rename, _delete }) UiAppearance.ApplyButton(button);
         // 標準のラベルでカテゴリ名を示す。右端に「値を隠す」。
         TableLayoutPanel caption = _captionBar;
         UiAppearance.ArrangeSectionHeader(caption, [UiAppearance.SectionTitle(_caption)], [_hide]);
         caption.BackColor = SystemColors.Window;
         FlowLayoutPanel bar = new() { Dock = DockStyle.Fill, AutoSize = true, WrapContents = true, Margin = Padding.Empty };
         _choose.Margin = new Padding(0, 0, 6, 0);
-        ToolStrip management = new()
+        FlowLayoutPanel management = new() { Dock = DockStyle.None, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Margin = Padding.Empty, WrapContents = true };
+        foreach (Button button in new[] { _add, _duplicate, _rename, _delete })
         {
-            Dock = DockStyle.None, GripStyle = ToolStripGripStyle.Hidden, AutoSize = true,
-            Font = UiAppearance.BodyFont, BackColor = SystemColors.Window,
-            Renderer = UiAppearance.Renderer(), Padding = Padding.Empty, Margin = Padding.Empty,
-        };
-        _manage.DropDownItems.AddRange([_add, _duplicate, _rename, new ToolStripSeparator(), _delete]);
-        management.Items.Add(_manage);
+            button.AutoSize = true;
+            button.Margin = new Padding(0, 0, 6, 0);
+            management.Controls.Add(button);
+        }
+        management.Visible = _managementMode;
+        _hide.Visible = _choose.Visible = _legendDiff.Visible = !_managementMode;
         bar.Controls.AddRange([_choose, management]);
         TableLayoutPanel toolbar = new() { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 2, RowCount = 1, Padding = new Padding(8, 4, 8, 4) };
         toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -176,7 +178,6 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         _selectionOutside.Text = UiText.Get("Comparison_SelectionOutside");
         _includeSelected.Text = UiText.Get("Comparison_IncludeSelected");
         _choose.Text = UiText.Get("Comparison_Choose");
-        _manage.Text = UiText.Get("Preset_Manage");
         _add.Text = UiText.Get("Preset_Add");
         _duplicate.Text = UiText.Get("Preset_Duplicate");
         _rename.Text = UiText.Get("Preset_Rename");
@@ -238,8 +239,9 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
                 _grid.Columns.Clear();
             }
             _grid.ReadOnly = !comparison.Editable;
+            _info.Visible = !comparison.Available;
             _choose.Enabled = comparison.Available;
-            _caption.Text = UiText.Format("Values_Caption", comparison.CategoryLabel);
+            _caption.Text = UiText.Format(_managementMode ? "Assignment_PresetsCaption" : "Values_Caption", comparison.CategoryLabel);
             _selectionNotice.Visible = comparison.Available && comparison.SelectedPreset is { } selected &&
                 comparison.AllPresets.Contains(selected) && !comparison.Columns.Any(c => c.AssignedToSelection);
             if (!comparison.Available)
@@ -263,7 +265,7 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
             for (int i = 0; i < comparison.Columns.Count; i++)
             {
                 PresetColumnDisplay preset = comparison.Columns[i];
-                string header = preset.Name + Environment.NewLine + (preset.AssignedToSelection ? UiText.Get("Comparison_SelectedMarker") : " ");
+                string header = _managementMode ? preset.Name : preset.Name + Environment.NewLine + (preset.AssignedToSelection ? UiText.Get("Comparison_SelectedMarker") : " ");
                 if (_grid.Columns.Count <= FixedColumns + i) AddColumn($"preset_{preset.Name}", header, frozen: false);
                 else
                 {
@@ -349,9 +351,7 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
                 _widthsDirty = false;
             }
 
-            _info.Text = comparison.Columns.Count < comparison.AllPresets.Count
-                ? UiText.Format("Comparison_Manual", comparison.Columns.Count, comparison.AllPresets.Count)
-                : UiText.Format("Comparison_All", comparison.AllPresets.Count);
+            _info.Text = "";
         }
         finally
         {
@@ -561,14 +561,14 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
 
     private void UpdateButtons()
     {
-        bool editable = _shown is { Available: true, Editable: true };
-        _manage.Enabled = editable;
+        bool editable = _managementMode && _shown is { Available: true, Editable: true };
         _add.Enabled = editable;
         _duplicate.Enabled = _rename.Enabled = _delete.Enabled = editable && CurrentPreset() is not null;
     }
 
     private void RequestOperation(PresetOperation operation)
     {
+        if (!_managementMode) return;
         CommitPendingEdit();
         PresetOperationRequested?.Invoke(this, new PresetOperationRequestedEventArgs(operation, operation == PresetOperation.Add ? null : CurrentPreset()));
     }

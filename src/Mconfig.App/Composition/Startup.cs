@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Reflection;
 using Mconfig.App.Resources;
 using Mconfig.App.Views;
@@ -97,6 +97,12 @@ internal static class Startup
             DiscardEditsHandler discard = new(session, store);
             using CombinationListPresenter list = new(form.CombinationList, session, runner, ui, displayLanguage);
             using PresetComparisonPresenter comparison = new(form.Comparison, session, runner, ui, displayLanguage);
+            using PresetComparisonPresenter presetManagement = new(form.Assignments.PresetManagement, session, runner, ui, displayLanguage);
+            _ = presetManagement.SetActiveAsync(false);
+            form.Assignments.CategoryContextChanged += (_, _) =>
+                _ = presetManagement.SelectManagementCategoryAsync(form.Assignments.CurrentCategory, form.Assignments.CurrentCategoryLabel);
+            form.Assignments.PresetManagement.VisibleChanged += (_, _) =>
+                _ = presetManagement.SetActiveAsync(form.Assignments.PresetManagement.Visible);
             using AssignmentPresenter assignments = new(form.Assignments, session, runner, ui, displayLanguage);
             _ = assignments.SetActiveAsync(false);
             form.Assignments.VisibleChanged += (_, _) => _ = assignments.SetActiveAsync(form.Assignments.Visible);
@@ -130,12 +136,20 @@ internal static class Startup
                 target.Screen == NavigationScreen.Assignments ? AppScreen.Assignments : AppScreen.Combinations,
                 () =>
                 {
-                    if (target.Screen == NavigationScreen.Assignments) _ = assignments.SelectAsync(target.Category);
+                    if (target.Screen == NavigationScreen.Assignments)
+                    {
+                        form.Assignments.ShowRules();
+                        _ = assignments.SelectAsync(target.Category);
+                    }
                     else list.SelectCategory(target.Category);
                 });
             list.ContextChanged += comparison.OnContextChanged;
             list.AssignmentNavigationRequested += (_, target) => form.OpenScreen(AppScreen.Assignments,
-                () => _ = assignments.SelectForCombinationAsync(target.Category, target.Combination));
+                () =>
+                {
+                    form.Assignments.ShowRules();
+                    _ = assignments.SelectForCombinationAsync(target.Category, target.Combination);
+                });
             form.Shown += (_, _) =>
             {
                 _ = list.RefreshAsync();

@@ -234,6 +234,7 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
             ShowCellInfo();
         };
         Comparison.CellInfoChanged += (_, _) => ShowCellInfo();
+        Assignments.PresetManagement.CellInfoChanged += (_, _) => ShowCellInfo();
         Status.StatusChanged += (_, _) => { UpdateTitle(); UpdateSaveStatus(); };
         Status.ErrorsClicked += (_, _) => ShowErrors();
         Status.UnassignedClicked += (_, _) => RequestScreen(AppScreen.Assignments);
@@ -395,7 +396,8 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
     }
 
     private void ShowCellInfo() =>
-        Status.ShowCellInfo(_screen == AppScreen.Combinations && !ValuesHidden ? Comparison.CurrentCellInfo() : null);
+        Status.ShowCellInfo(_screen == AppScreen.Combinations && !ValuesHidden ? Comparison.CurrentCellInfo()
+            : _screen == AppScreen.Assignments ? Assignments.PresetManagement.CurrentCellInfo() : null);
 
     private void UpdateTitle()
     {

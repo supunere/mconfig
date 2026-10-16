@@ -30,8 +30,8 @@
   <data name="Button_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Status_Unsaved" xml:space="preserve"><value>Unsaved changes</value></data>
   <data name="Status_Saved" xml:space="preserve"><value>Saved</value></data>
-  <data name="Status_Uncommitted" xml:space="preserve"><value>Not saved to history</value></data>
-  <data name="Status_Committed" xml:space="preserve"><value>Saved to history</value></data>
+  <data name="Status_Uncommitted" xml:space="preserve"><value>Not recorded in history</value></data>
+  <data name="Status_Committed" xml:space="preserve"><value>Recorded in history</value></data>
   <data name="Status_ReadOnly" xml:space="preserve"><value>Read-only (another app is editing)</value></data>
   <data name="Status_RecoveryPending" xml:space="preserve"><value>Recovery pending (a save stopped midway)</value></data>
   <data name="Status_Saving" xml:space="preserve"><value>Saving...</value></data>
@@ -70,7 +70,7 @@ The following backups and past committed versions were verified to load and vali
   <data name="Recovery_FromFile" xml:space="preserve"><value>{0}  settings backup {1}</value></data>
   <data name="Recovery_Restored" xml:space="preserve"><value>The workspace was restored. Review the content, then save it to the history with a reason.</value></data>
   <data name="Menu_File" xml:space="preserve"><value>&amp;File</value></data>
-  <data name="Menu_SaveDraft" xml:space="preserve"><value>&amp;Save Draft</value></data>
+  <data name="Menu_SaveDraft" xml:space="preserve"><value>&amp;Save</value></data>
   <data name="Menu_Exit" xml:space="preserve"><value>E&amp;xit</value></data>
   <data name="Button_CopyDetails" xml:space="preserve"><value>Copy Details</value></data>
   <data name="Severity_Error" xml:space="preserve"><value>Error</value></data>
@@ -114,20 +114,20 @@ The following backups and past committed versions were verified to load and vali
   <data name="Assignment_CountWithUnreachable" xml:space="preserve"><value>{0} rows. Rows higher in the list take priority. {1} rows marked ⚠ are never used because a row above covers them.</value></data>
   <data name="Assignment_UnreachableTip" xml:space="preserve"><value>This row is never used because a row above covers it. Consider changing the order or conditions.</value></data>
   <data name="Leave_UnsavedTab" xml:space="preserve"><value>You have {0} changes that are not saved.
-Save a draft before switching screens? If you choose Don't Save, the {0} changes will be lost.</value></data>
+Save before switching screens? If you choose Don't Save, the {0} changes will be lost.</value></data>
   <data name="Leave_UnsavedExit" xml:space="preserve"><value>You have {0} changes that are not saved.
-Save a draft before exiting? If you choose Don't Save, the {0} changes will be lost.</value></data>
-  <data name="Leave_Save" xml:space="preserve"><value>&amp;Save Draft</value></data>
+Save before exiting? If you choose Don't Save, the {0} changes will be lost.</value></data>
+  <data name="Leave_Save" xml:space="preserve"><value>&amp;Save</value></data>
   <data name="Leave_Discard" xml:space="preserve"><value>Do&amp;n't Save</value></data>
-  <data name="Leave_UncommittedExit" xml:space="preserve"><value>Some changes are not yet saved to the history. They are saved as a draft and will still be there next time. Exit now?</value></data>
+  <data name="Leave_UncommittedExit" xml:space="preserve"><value>Some changes are not yet recorded in history. They are saved and will still be there next time. Exit now?</value></data>
   <data name="Leave_Busy" xml:space="preserve"><value>Saving, exporting or another operation is in progress. Try again when it finishes.</value></data>
   <data name="Data_SaveGroup" xml:space="preserve"><value>Save</value></data>
   <data name="Data_Validate" xml:space="preserve"><value>Validate</value></data>
-  <data name="Data_SaveDraft" xml:space="preserve"><value>Save Draft</value></data>
+  <data name="Data_SaveDraft" xml:space="preserve"><value>Save</value></data>
   <data name="Data_Discard" xml:space="preserve"><value>Discard Edits</value></data>
-  <data name="Data_DiscardConfirm" xml:space="preserve"><value>Discard the edits that are not saved and go back to the last saved draft?</value></data>
+  <data name="Data_DiscardConfirm" xml:space="preserve"><value>Discard the edits that are not saved and go back to the last saved version?</value></data>
   <data name="Data_Reason" xml:space="preserve"><value>Reason:</value></data>
-  <data name="Data_Commit" xml:space="preserve"><value>Save to History</value></data>
+  <data name="Data_Commit" xml:space="preserve"><value>Record in History</value></data>
   <data name="Data_ValidationGroup" xml:space="preserve"><value>Validation</value></data>
   <data name="Data_CopyIssues" xml:space="preserve"><value>Copy Diagnostics</value></data>
   <data name="Data_ColSeverity" xml:space="preserve"><value>Severity</value></data>
@@ -161,9 +161,9 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Confirm_Proceed" xml:space="preserve"><value>Continue anyway?</value></data>
   <data name="Restore_Title" xml:space="preserve"><value>Restore Version</value></data>
   <data name="Restore_Message" xml:space="preserve"><value>Restore the version from {0} by {1}: "{2}". {3} differences from the current content.</value></data>
-  <data name="Restore_Choice_Restore" xml:space="preserve"><value>After restoring, the draft becomes this version. To record it in the history, enter a reason and save to history afterwards.</value></data>
-  <data name="Restore_Choice_RestoreByDiscarding" xml:space="preserve"><value>Some changes are not saved to the history. Restoring discards them (the current files are kept in the recovery area). Save to history after restoring to record it.</value></data>
-  <data name="Restore_Choice_SaveOrDiscardFirst" xml:space="preserve"><value>You have edits that are not saved, so restoring is not possible now. Save a draft or discard the edits first.</value></data>
+  <data name="Restore_Choice_Restore" xml:space="preserve"><value>After restoring, the saved content becomes this version. To record it in the history, enter a reason and record in history afterwards.</value></data>
+  <data name="Restore_Choice_RestoreByDiscarding" xml:space="preserve"><value>Some changes are not recorded in history. Restoring discards them (the current files are kept in the recovery area). Record in history after restoring to record it.</value></data>
+  <data name="Restore_Choice_SaveOrDiscardFirst" xml:space="preserve"><value>You have edits that are not saved, so restoring is not possible now. Save or discard the edits first.</value></data>
   <data name="Restore_Choice_Unavailable" xml:space="preserve"><value>This version cannot be restored (its content has problems, or the workspace is saving, read-only, or waiting for recovery).</value></data>
   <data name="Export_Run" xml:space="preserve"><value>Export</value></data>
   <data name="Export_CompareLabel" xml:space="preserve"><value>Compare with:</value></data>
@@ -171,29 +171,29 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Export_CompareTo" xml:space="preserve"><value>Compared with {0} (published {1})</value></data>
   <data name="Export_NoCompareTo" xml:space="preserve"><value>No comparison (everything is reported as new)</value></data>
   <data name="Export_Summary" xml:space="preserve"><value>{0} saved versions and {1} changes included</value></data>
-  <data name="Export_Uncommitted" xml:space="preserve"><value>Also includes {0} changes not saved to the history.</value></data>
-  <data name="Export_NeedsDraftSave" xml:space="preserve"><value>The current edits will be saved as a draft before exporting.</value></data>
+  <data name="Export_Uncommitted" xml:space="preserve"><value>Also includes {0} changes not recorded in history.</value></data>
+  <data name="Export_NeedsDraftSave" xml:space="preserve"><value>The current edits will be saved before exporting.</value></data>
   <data name="Export_ApproveWarnings" xml:space="preserve"><value>Exporting means you have reviewed the warnings above.</value></data>
   <data name="Export_Blocker_ReadOnly" xml:space="preserve"><value>Cannot export because the workspace is open read-only.</value></data>
   <data name="Export_Blocker_RecoveryPending" xml:space="preserve"><value>Cannot export while recovery is pending. Restart the application to recover.</value></data>
   <data name="Export_Blocker_Saving" xml:space="preserve"><value>Cannot export while saving. Try again when it finishes.</value></data>
-  <data name="Export_Blocker_UncommittedChanges" xml:space="preserve"><value>Cannot export a release version because some changes are not saved to the history. Save to history first.</value></data>
-  <data name="Export_Blocker_NoCommit" xml:space="preserve"><value>Cannot export a release version because nothing has been saved to the history yet. Save to history first.</value></data>
+  <data name="Export_Blocker_UncommittedChanges" xml:space="preserve"><value>Cannot export a release version because some changes are not recorded in history. Record in history first.</value></data>
+  <data name="Export_Blocker_NoCommit" xml:space="preserve"><value>Cannot export a release version because nothing has been recorded in history yet. Record in history first.</value></data>
   <data name="Export_Blocker_ValidationErrors" xml:space="preserve"><value>Cannot export because the content has errors. Check the validation results.</value></data>
-  <data name="Operation_SaveDraft" xml:space="preserve"><value>Save draft</value></data>
+  <data name="Operation_SaveDraft" xml:space="preserve"><value>Save</value></data>
   <data name="Operation_Discard" xml:space="preserve"><value>Discard edits</value></data>
-  <data name="Operation_Commit" xml:space="preserve"><value>Save to history</value></data>
+  <data name="Operation_Commit" xml:space="preserve"><value>Record in history</value></data>
   <data name="Operation_Restore" xml:space="preserve"><value>Restore</value></data>
   <data name="Operation_ExportTest" xml:space="preserve"><value>Test export</value></data>
   <data name="Operation_ExportRelease" xml:space="preserve"><value>Release export</value></data>
   <data name="Operation_ResumeExport" xml:space="preserve"><value>Resume export</value></data>
-  <data name="Result_Committed" xml:space="preserve"><value>Saved to the history.</value></data>
-  <data name="Result_DraftSaved" xml:space="preserve"><value>Saved as a draft (not yet saved to the history).</value></data>
-  <data name="Result_Discarded" xml:space="preserve"><value>Discarded the edits and went back to the last saved draft.</value></data>
-  <data name="Result_Restored" xml:space="preserve"><value>Restored the version. To record it in the history, enter a reason and save to history.</value></data>
+  <data name="Result_Committed" xml:space="preserve"><value>Recorded in history.</value></data>
+  <data name="Result_DraftSaved" xml:space="preserve"><value>Saved (not yet recorded in history).</value></data>
+  <data name="Result_Discarded" xml:space="preserve"><value>Discarded the edits and went back to the last saved version.</value></data>
+  <data name="Result_Restored" xml:space="preserve"><value>Restored the version. To record it in the history, enter a reason and record in history.</value></data>
   <data name="Result_Exported" xml:space="preserve"><value>Exported: {0}</value></data>
   <data name="Result_NoChanges" xml:space="preserve"><value>There are no changes.</value></data>
-  <data name="Result_NoChangesCommit" xml:space="preserve"><value>There are no changes to save to the history.</value></data>
+  <data name="Result_NoChangesCommit" xml:space="preserve"><value>There are no changes to record in history.</value></data>
   <data name="Result_ValidationFailed" xml:space="preserve"><value>{0} failed because the content has errors. Check the validation results in Data Management.</value></data>
   <data name="Result_NotConfirmed" xml:space="preserve"><value>{0} was not carried out.</value></data>
   <data name="Result_Conflict" xml:space="preserve"><value>{0} failed because the content or files changed. Check the latest state and try again.</value></data>
@@ -201,8 +201,8 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Result_Canceled" xml:space="preserve"><value>{0} was canceled. Nothing was changed.</value></data>
   <data name="Result_RecoveryPending" xml:space="preserve"><value>{0} stopped before its result could be confirmed. Restart the application to recover.</value></data>
   <data name="Result_TechnicalFailure" xml:space="preserve"><value>{0} failed because of a problem such as writing a file. Copy the details and contact your administrator.</value></data>
-  <data name="Result_DraftSavedButNotCommitted" xml:space="preserve"><value>The draft was saved, but saving to the history did not complete. Save to history again.</value></data>
-  <data name="Result_DraftSavedOnly" xml:space="preserve"><value>The draft was saved.</value></data>
+  <data name="Result_DraftSavedButNotCommitted" xml:space="preserve"><value>The changes were saved, but recording in history did not complete. Record in history again.</value></data>
+  <data name="Result_DraftSavedOnly" xml:space="preserve"><value>The changes were saved.</value></data>
   <data name="Issue_InvalidStructure" xml:space="preserve"><value>The presets or assignments have an invalid structure and cannot be edited. Consider restoring from a backup.</value></data>
   <data name="Issue_InvalidPresetName" xml:space="preserve"><value>The preset name "{0}" is empty or used twice. Rename it.</value></data>
   <data name="Issue_MissingSchema" xml:space="preserve"><value>There is no schema for this category. Add a schema or review the category.</value></data>
@@ -219,9 +219,9 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Issue_OrphanGroup" xml:space="preserve"><value>This group is not in the schema. Its content is kept as it is.</value></data>
   <data name="Issue_OrphanRow" xml:space="preserve"><value>This row is not in the schema. Its content is kept as it is.</value></data>
   <data name="Issue_OrphanColumn" xml:space="preserve"><value>This column is not in the schema. Its content is kept as it is.</value></data>
-  <data name="Issue_MissingGroup" xml:space="preserve"><value>This group is missing (it is not marked as unused either). Before saving to the history, add its values or set it to null (unused) in the source data.</value></data>
-  <data name="Issue_BlankRow" xml:space="preserve"><value>This row has no values. Enter them before saving to the history.</value></data>
-  <data name="Issue_BlankCell" xml:space="preserve"><value>No value is entered. Enter one before saving to the history.</value></data>
+  <data name="Issue_MissingGroup" xml:space="preserve"><value>This group is missing (it is not marked as unused either). Before recording in history, add its values or set it to null (unused) in the source data.</value></data>
+  <data name="Issue_BlankRow" xml:space="preserve"><value>This row has no values. Enter them before recording in history.</value></data>
+  <data name="Issue_BlankCell" xml:space="preserve"><value>No value is entered. Enter one before recording in history.</value></data>
   <data name="Issue_UnsupportedRow" xml:space="preserve"><value>This row has a structure that cannot be edited. Check the original data.</value></data>
   <data name="Issue_UnsupportedCell" xml:space="preserve"><value>This value has a form that cannot be edited. Check the original data.</value></data>
   <data name="Issue_UncoveredCombinations" xml:space="preserve"><value>{0} combinations match no assignment row. Add assignment rows if needed.</value></data>
@@ -261,7 +261,7 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="ScreenMenu_History" xml:space="preserve"><value>&amp;3 Save and History</value></data>
   <data name="ScreenMenu_Export" xml:space="preserve"><value>&amp;4 Export</value></data>
   <data name="Menu_HideValues" xml:space="preserve"><value>&amp;Hide Values</value></data>
-  <data name="Tool_SaveDraft" xml:space="preserve"><value>Save Draft</value></data>
+  <data name="Tool_SaveDraft" xml:space="preserve"><value>Save</value></data>
   <data name="Tool_Validate" xml:space="preserve"><value>Validate</value></data>
   <data name="Title_Unsaved" xml:space="preserve"><value> (unsaved changes)</value></data>
   <data name="Filter_Clear" xml:space="preserve"><value>Clear Filters</value></data>
@@ -287,7 +287,7 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Status_UnsavedCount" xml:space="preserve"><value>Unsaved changes: {0}</value></data>
   <data name="Status_Errors" xml:space="preserve"><value>Errors: {0}</value></data>
   <data name="Status_Unassigned" xml:space="preserve"><value>Unassigned: {0}</value></data>
-  <data name="Status_ErrorsTip" xml:space="preserve"><value>Errors that prevent saving to history. Click to show the validation results.</value></data>
+  <data name="Status_ErrorsTip" xml:space="preserve"><value>Errors that prevent recording in history. Click to show the validation results.</value></data>
   <data name="Status_UnassignedTip" xml:space="preserve"><value>Combinations and categories that match no assignment. Click to open Assignments.</value></data>
   <data name="SharedEdit_Title" xml:space="preserve"><value>Change Values</value></data>
   <data name="SharedEdit_Separator" xml:space="preserve"><value>, </value></data>
@@ -309,7 +309,7 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Assignment_StateUnreachable" xml:space="preserve"><value>Unused (an upper row takes priority)</value></data>
   <data name="Assignment_StateUnsaved" xml:space="preserve"><value> (added or changed, unsaved)</value></data>
   <data name="Assignment_ChangesTitle" xml:space="preserve"><value>Combinations whose preset changes</value></data>
-  <data name="Assignment_ComparedWithDraft" xml:space="preserve"><value>Compared with the last draft save</value></data>
+  <data name="Assignment_ComparedWithDraft" xml:space="preserve"><value>Compared with the last save</value></data>
   <data name="Assignment_ChangedOnly" xml:space="preserve"><value>Changes only ({0})</value></data>
   <data name="Assignment_AllCombinations" xml:space="preserve"><value>All ({0})</value></data>
   <data name="Assignment_ColBefore" xml:space="preserve"><value>Before</value></data>
@@ -323,21 +323,21 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Assignment_GuideTitle" xml:space="preserve"><value>To give only some combinations different values</value></data>
   <data name="Assignment_Guide" xml:space="preserve"><value>1. In Combinations and Values, duplicate the preset and change its values
 2. Here, add a row that matches only the target combinations, choose the preset from step 1, and move it up
-3. Check that only the intended combinations appear under Changes only, then save a draft</value></data>
+3. Check that only the intended combinations appear under Changes only, then save</value></data>
   <data name="Data_GoToIssue" xml:space="preserve"><value>Go to Location</value></data>
   <data name="Data_GoToIssueHint" xml:space="preserve"><value>Select an item and choose Go to Location (or double-click) to open the screen where you can fix it.</value></data>
   <data name="Data_ValidationGroupCount" xml:space="preserve"><value>Validation (errors: {0}, warnings: {1})</value></data>
-  <data name="Data_UncommittedGroup" xml:space="preserve"><value>Changes since the last history save</value></data>
-  <data name="Data_UncommittedGroupCount" xml:space="preserve"><value>Changes since the last history save ({0})</value></data>
-  <data name="Data_UncommittedUnavailable" xml:space="preserve"><value>Could not read the last history save</value></data>
+  <data name="Data_UncommittedGroup" xml:space="preserve"><value>Changes since the last history record</value></data>
+  <data name="Data_UncommittedGroupCount" xml:space="preserve"><value>Changes since the last history record ({0})</value></data>
+  <data name="Data_UncommittedUnavailable" xml:space="preserve"><value>Could not read the last history record</value></data>
   <data name="Data_Author" xml:space="preserve"><value>Author: {0} (Windows user name)</value></data>
   <data name="Data_CommitBlocked" xml:space="preserve"><value>Cannot save: there are {0} errors. Go to each location from the validation results and fix it.</value></data>
-  <data name="Data_NothingToCommit" xml:space="preserve"><value>There are no changes to save to history.</value></data>
+  <data name="Data_NothingToCommit" xml:space="preserve"><value>There are no changes to record in history.</value></data>
   <data name="Data_RevisionChanges" xml:space="preserve"><value>Changes in the selected version</value></data>
   <data name="Data_CompareWithCurrent" xml:space="preserve"><value>Compare with Current...</value></data>
   <data name="Data_CompareWithCurrentTitle" xml:space="preserve"><value>Compare with Current</value></data>
   <data name="Data_CompareWithCurrentMessage" xml:space="preserve"><value>Differences from the version of {0} ({1}, "{2}") to the current content: {3}</value></data>
-  <data name="Tool_Commit" xml:space="preserve"><value>Save to History...</value></data>
+  <data name="Tool_Commit" xml:space="preserve"><value>Record in History...</value></data>
   <data name="Combination_Large" xml:space="preserve"><value>There are {0} combinations (more than 50,000). The list computes only the visible rows, but validation and assignment totals take time. Filtering makes them faster.</value></data>
   <data name="Combination_LargeTruncated" xml:space="preserve"><value>There are {0} combinations; only the first {1} can be shown. Please filter the list.</value></data>
   <data name="Status_UnassignedNotCounted" xml:space="preserve"><value>Unassigned: check by validating</value></data>
@@ -350,7 +350,7 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Progress_Starting" xml:space="preserve"><value>{0}: preparing…</value></data>
   <data name="Progress_Checking" xml:space="preserve"><value>{0}: checking combinations {1} / {2} ({3}%)</value></data>
   <data name="Progress_Cancel" xml:space="preserve"><value>Cancel</value></data>
-  <data name="Data_ValidationIncomplete" xml:space="preserve"><value>Validation incomplete (canceled). These results cannot be used to save to history or export. Choose Validate again.</value></data>
+  <data name="Data_ValidationIncomplete" xml:space="preserve"><value>Validation incomplete (canceled). These results cannot be used to record in history or export. Choose Validate again.</value></data>
   <data name="Data_ExportUncovered" xml:space="preserve"><value>Export Unassigned to CSV...</value></data>
   <data name="Csv_Title" xml:space="preserve"><value>Export Unassigned Combinations</value></data>
   <data name="Csv_Filter" xml:space="preserve"><value>CSV files (*.csv)|*.csv</value></data>
@@ -358,9 +358,9 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
 {1}</value></data>
   <data name="Csv_Canceled" xml:space="preserve"><value>The export was canceled. No existing file was changed.</value></data>
   <data name="Csv_Failed" xml:space="preserve"><value>Could not write the file: {0}</value></data>
-  <data name="Error_Unexpected" xml:space="preserve"><value>An unexpected error occurred. Your work may not be lost. Try Save Draft; if the problem continues, restart the application. Details are in the log in the workspace's logs folder.</value></data>
+  <data name="Error_Unexpected" xml:space="preserve"><value>An unexpected error occurred. Your work may not be lost. Try Save; if the problem continues, restart the application. Details are in the log in the workspace's logs folder.</value></data>
   <data name="Reason_RestoreNeedsNoPendingChanges" xml:space="preserve"><value>There are unsaved or uncommitted changes. Save or discard them first, or choose to discard the uncommitted changes and restore.</value></data>
-  <data name="Reason_ReleaseNeedsCommittedHead" xml:space="preserve"><value>There are changes that are not in the history, or no version has been saved to the history yet. Save to the history first.</value></data>
+  <data name="Reason_ReleaseNeedsCommittedHead" xml:space="preserve"><value>There are changes that are not in the history, or no version has been recorded in history yet. Record in history first.</value></data>
   <data name="Reason_ChangedAfterPreview" xml:space="preserve"><value>The content changed after the preview. Check the preview again.</value></data>
   <data name="Reason_FilesChangedOutside" xml:space="preserve"><value>The workspace files were changed outside this application. Restart the application to load them again.</value></data>
   <data name="Export_PendingProblem_DamagedJournal" xml:space="preserve"><value>The export record is damaged. Completion cannot be confirmed and this export cannot be resumed. Recovery files remain. Preserve the record and ask your administrator to recover it.</value></data>
@@ -368,13 +368,13 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Export_PendingProblem_ListUnavailable" xml:space="preserve"><value>The interrupted export list could not be read. There may be unfinished exports that are not shown. Check the recovery folder location and access permissions, then reopen the export screen.</value></data>
   <data name="Export_OperationId" xml:space="preserve"><value>Operation ID: {0}</value></data>
   <data name="Tool_Save" xml:space="preserve"><value>Save</value></data>
-  <data name="Tool_SaveTip" xml:space="preserve"><value>Save a draft (Ctrl+S). To record it in history, choose Save to history from the menu.</value></data>
+  <data name="Tool_SaveTip" xml:space="preserve"><value>Save (Ctrl+S). To record it in history, choose Record in history from the menu.</value></data>
   <data name="Tool_Changes" xml:space="preserve"><value>● {0} changes</value></data>
   <data name="Tool_Discard" xml:space="preserve"><value>Discard unsaved changes...</value></data>
   <data name="Status_NoErrors" xml:space="preserve"><value>✓ No errors</value></data>
   <data name="Combination_Title" xml:space="preserve"><value>Combinations</value></data>
   <data name="History_CurrentChanges" xml:space="preserve"><value>Current changes</value></data>
-  <data name="History_CurrentChangeCount" xml:space="preserve"><value>{0} changes since the last history save</value></data>
+  <data name="History_CurrentChangeCount" xml:space="preserve"><value>{0} changes since the last history record</value></data>
   <data name="History_ValidationPending" xml:space="preserve"><value>Validation is not complete. Check the validation results.</value></data>
   <data name="History_ValidationStale" xml:space="preserve"><value>The content has changed. Validate again.</value></data>
   <data name="History_ValidationSummary" xml:space="preserve"><value>Validation: {0} errors / {1} warnings</value></data>
@@ -387,5 +387,8 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Output_NoPending" xml:space="preserve"><value>There are no incomplete exports.</value></data>
   <data name="Output_PendingNeedsAttention" xml:space="preserve"><value>No export can be resumed. Check the recovery information below.</value></data>
   <data name="Comparison_EditHint" xml:space="preserve"><value>Double-click or press F2 to edit.</value></data>
+  <data name="Assignment_RulesCaption" xml:space="preserve"><value>{0} assignment rules</value></data>
+  <data name="Assignment_PresetsCaption" xml:space="preserve"><value>{0} preset management</value></data>
+  <data name="Assignment_PriorityHint" xml:space="preserve"><value>Higher rows take priority.</value></data>
 </root>
 

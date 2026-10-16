@@ -10,8 +10,8 @@
 
 ## 試す
 
-最新の確認用ビルドは、1段ヘッダー・管理メニュー・コンボボックス形式の絞り込みに整理した `artifacts/ui-native-winforms/simple-assignment/preview/Mconfig.UiBenchmark.exe` を起動する。詳細は [シンプル化の記録](ui-simplification-2026-10-16.md) を参照。
-この確認用ランチャーは `artifacts/ui-native-winforms/simple-assignment/preview-workspace` のコピーを指定して本体を起動する。元データは `artifacts/ui-area-headers/workspace/data`。ワークスペース名も `preview-workspace` として表示される。通常起動と同じく最後に開いたワークスペースとして記憶される点に注意。
+最新の確認用ビルドは、1段ヘッダー・管理メニュー・コンボボックス形式の絞り込みに整理した `artifacts/ui-native-winforms/preset-management-tabs/preview/Mconfig.UiBenchmark.exe` を起動する。詳細は [シンプル化の記録](ui-simplification-2026-10-16.md) を参照。
+この確認用ランチャーは `artifacts/ui-native-winforms/preset-management-tabs/preview-workspace` のコピーを指定して本体を起動する。元データは `artifacts/ui-area-headers/workspace/data`。ワークスペース名も `preview-workspace` として表示される。通常起動と同じく最後に開いたワークスペースとして記憶される点に注意。
 
 画像: 初版 `artifacts/ui-native-winforms/native-winforms.png`、修正版 `artifacts/ui-native-winforms/native-winforms-fixed.png`。
 
@@ -80,3 +80,5 @@ Releaseビルドは警告・エラー0。回帰テスト10件、既存の絞り�
 その後、シンプル化を優先して標準1段ヘッダーへ戻し、2段ヘッダー専用の実装を削除した。上記の2段ヘッダーに関する記述・画像は比較時の履歴であり、現在の実装には含まれない。
 
 タイトルから開閉する試作も用意した。`artifacts/ui-native-winforms/accordion-title/preview/Mconfig.UiBenchmark.exe`。見た目が馴染まないため不採用とし、右端ボタン版へ戻した。詳細はシンプル化の記録を参照。
+
+現在は割り当てルールとプリセット管理を上下に並べた試作も用意している。`artifacts/ui-native-winforms/stacked-presets/preview/Mconfig.UiBenchmark.exe`。カテゴリ一覧は共通、両領域の配置を統一し、標準分割バーで高さを調整する。タブ版と比較できる。

@@ -146,7 +146,7 @@ public interface IPresetComparisonView
 /// 失敗したときは表示を元に戻し、理由を示す。
 /// 編集するプリセットを、組み合わせの表で選んでいる組み合わせ以外も使っているときは、入力を始める前（貼り付けでは適用の前）に
 /// 影響する組み合わせを示して確認する。貼り付けが複数のプリセットにまたがるときはまとめて 1 回。
-/// 「一時保存するまで確認しない」を選んだプリセットは、一時保存か破棄で未保存の変更がなくなるまで確認を省く。
+/// 共有プリセットの編集では毎回確認する。
 /// プリセットの複製や割り当ての追加は自動では行わない。
 /// </summary>
 public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonReadModel>
@@ -162,6 +162,7 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
     private IReadOnlyList<int> _shownIndexes = [];
     private CombinationContext? _context;
     private string? _category;
+    private string? _managementCategoryLabel;
     private IReadOnlyList<string>? _chosen;
     private (PresetComparisonReadModel Model, int[] Indexes, string? Baseline, string Language, ComparisonRowDisplay[] Rows)? _rendered;
     // 自分のセル入力だけで続けて進んだ版の範囲（行・列を変えない操作だけを数える）。
@@ -184,6 +185,17 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
         _view.CellEdited += OnCellEdited;
         _view.PasteRequested += OnPasteRequested;
         _view.PresetOperationRequested += OnPresetOperationRequested;
+    }
+
+    /// <summary>管理画面のカテゴリ。組み合わせの選択や比較基準を持たず、全プリセットを扱う。</summary>
+    public Task SelectManagementCategoryAsync(string? category, string? label)
+    {
+        _context = null;
+        _chosen = null;
+        _managementCategoryLabel = label;
+        if (_category != category) return SelectAsync(category);
+        if (Current is not null) Render(Current);
+        return Task.CompletedTask;
     }
 
     /// <summary>組み合わせ一覧の表示・選択が変わったとき。カテゴリと比較基準を反映する。</summary>
@@ -246,7 +258,7 @@ public sealed class PresetComparisonPresenter : QueryPresenter<PresetComparisonR
             rows)
         {
             Editable = model.Available && Editing.IsAllowed(_status.Handle()),
-            CategoryLabel = _context?.Categories.FirstOrDefault(c => c.Key == model.Category)?.Label ?? model.Category,
+            CategoryLabel = _context?.Categories.FirstOrDefault(c => c.Key == model.Category)?.Label ?? _managementCategoryLabel ?? model.Category,
             SelectedPreset = selectedPreset,
         });
     }

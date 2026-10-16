@@ -133,3 +133,43 @@ SkipUntilSavedとその保存・解除処理を削除し、共有プリセット
 「この変更で割り当て先が変わる組み合わせ」の一覧と、その右の集計・操作説明を削除。上下分割をなくし、右側は割り当て表が全高を使う。代替の対象件数表示は追加しない。左カテゴリ、条件・割り当て先の編集、行の追加・削除・移動、行ごとの適用数・問題表示は維持。変更一覧専用のコントロールと表示範囲切り替えイベントを除去。Releaseビルドは警告・エラー0、既存配置検査成功、Computer Useで割り当て画面の配置と既存行の表示を確認。
 
 最新確認用アプリ: `artifacts/ui-native-winforms/simple-assignment/preview/Mconfig.UiBenchmark.exe`。同階層のpreview-workspaceコピーを使用。
+
+## 割り当てルールとプリセット管理のタブ
+
+- 「割り当て」右側を標準TabControlの「割り当てルール」「プリセット管理」に分け、左カテゴリは共通にした。カテゴリ変更時は管理側も追従し、タブの選択は維持する。組み合わせ表や検証結果からルールへ移動するときはルールタブを開く。
+- プリセット管理は全プリセットの値を横に並べる。追加・複製・名前変更・削除は標準ToolStripButtonで直接配置し、対象は値表の選択列とする。①の管理メニューは削除。①の表示対象選択と値編集は維持。
+- 表の表示・編集、貼り付け、名前の入力、使用中削除の制限、共有編集の確認は既存処理を共通化。管理側には独立したViewとPresenterインスタンスを接続し、組み合わせの選択・比較基準を渡さない。選択中マーカー・差分凡例・表示対象選択・値の開閉は管理タブに出さない。
+- 非表示の管理表はQueryを停止し、表示時に最新状態を読み直す。タブ／カテゴリ変更と画面移動・保存時に編集を確定する。管理側のセル情報もステータスバーに表示する。
+- Releaseビルドは警告・エラー0。Presentationテスト12件成功（管理カテゴリの全件表示・基準なし・複製→名前変更→削除・カテゴリ切り替えを追加）。既存WinForms検査も成功。Computer Useで日常画面の管理メニュー削除、タブ切り替え、カテゴリ連動、管理操作の有効化と複製ダイアログを確認。実画面の複製はキャンセルし、元データは変更していない。
+
+最新確認用アプリ: `artifacts/ui-native-winforms/preset-management-tabs/preview/Mconfig.UiBenchmark.exe`
+使用データ: 同階層の `preview-workspace`（コピー）。ブランチは `codex/native-winforms-trial`。今回はコミット・pushしていない。
+
+## 割り当て画面の上下配置を試作
+
+タブの階層と配置の違いを減らすため、内側のTabControlを外し、右側を標準SplitContainerで上下に配置した。上は「カテゴリの割り当てルール」、下は「カテゴリのプリセット管理」。左のカテゴリ一覧は共通。両方の見出し・ボタン・表の左端と余白を揃え、管理側も標準Buttonにした。高さは中央の分割バーで調整できる。追加の開閉機能は付けない。
+
+既存の条件編集・管理操作・共有編集確認・画面切り替え時の入力確定は維持。上の説明は下端の既存行数表示と重複するため、見出し横には置かない。下部に以前廃止した影響一覧や対象件数は追加していない。
+
+Releaseビルドは警告・エラー0。既存検査に加え、760/1280pxでの上下表の同時表示・表と操作の左端一致・ボタン高の一致・分割バー操作を確認。Computer Useで上下配置とカテゴリ連動を確認。
+
+試作アプリ: `artifacts/ui-native-winforms/stacked-presets/preview/Mconfig.UiBenchmark.exe`
+データ: 同階層の `preview-workspace`（コピー）。タブ版は `artifacts/ui-native-winforms/preset-management-tabs/preview/Mconfig.UiBenchmark.exe` に残す。試作直前のView3ファイルは `artifacts/ui-native-winforms/stacked-presets/before`。今回コミット・pushは行っていない。
+
+カテゴリ見出しにも共通の緑線・太字を適用。カテゴリ欄の上余白をなくし、左右で同じ高さの見出し行を使って「カテゴリ」と「xxxの割り当てルール」の縦位置を統一した。Releaseビルド・既存配置検査成功、実画面でも確認。最新アプリ: `artifacts/ui-native-winforms/category-heading/preview/Mconfig.UiBenchmark.exe`。同階層のpreview-workspaceコピーを使用。
+
+割り当て画面のカテゴリ側（見出し・一覧周囲）と右側の表周囲をSystemColors.Windowの白背景に統一。選択色・状態色・標準ヘッダーの描画は維持。最新確認用アプリ: `artifacts/ui-native-winforms/white-assignment/preview/Mconfig.UiBenchmark.exe`。同階層のpreview-workspaceコピーを使用。
+
+背景を白に統一した際に分割バーも白くなったため、左右・上下のSplitContainerの背景だけSystemColors.Controlへ戻した。各領域の白背景と見出し位置は維持し、6pxのグレーの隙間で領域を分ける。最新確認用アプリ: `artifacts/ui-native-winforms/gray-gaps/preview/Mconfig.UiBenchmark.exe`。同階層のpreview-workspaceコピーを使用。
+
+割り当てルール下端の通常行数説明と、プリセット管理下端の表示件数を非表示にした。割り当てルールの操作行の右端に「上の行ほど優先されます」を配置。データを表示できない場合やルールが見つからない場合の案内は維持。「組み合わせと値」の件数表示は変更しない。最新アプリ: `artifacts/ui-native-winforms/priority-hint/preview/Mconfig.UiBenchmark.exe`。同階層のpreview-workspaceコピーを使用。
+
+「組み合わせと値」でも値の表の下端の通常件数説明（全件表示・選択した表示対象の件数）を削除。表示できない場合の案内は維持。最新アプリ: `artifacts/ui-native-winforms/no-value-count/preview/Mconfig.UiBenchmark.exe`。同階層のpreview-workspaceコピーを使用。
+
+## 保存の名称整理
+
+「一時保存」を「保存」、「履歴に保存」を「履歴に残す」に統一。ボタン、メニュー、ツールチップ、終了確認、復元、出力、結果通知を含めて日本語・英語を更新。状態表示は「保存済み」「履歴に未記録／記録済み」。内部APIと保存処理は変更せず、Ctrl+Sも維持。リソースXMLの読み取りと古い表示名の残存チェックを確認。
+
+最新確認用アプリ: `artifacts/ui-native-winforms/save-wording/preview/Mconfig.UiBenchmark.exe`。同階層のpreview-workspaceコピーを使用。
+
+履歴表の列表示順を「日時・作成者・変更理由・コミットID」に変更。標準ListViewのDisplayIndexだけを変更し、行データと履歴選択の対応は維持。最新確認用アプリ: `artifacts/ui-native-winforms/history-column-order/preview/Mconfig.UiBenchmark.exe`。
