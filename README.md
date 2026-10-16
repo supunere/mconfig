@@ -48,6 +48,7 @@ dotnet test tests/Mconfig.Presentation.Tests/Mconfig.Presentation.Tests.csproj -
 
 検証結果が保存状態の変化で古くならないこと、内容の編集・復帰、非同期の検証中に状態が変わる場合を確認します。
 UIでの確認範囲と結果は[動作確認記録](docs/ui-review-2026-10-15.md)を参照してください。
+画面は標準WinFormsを基本とします。見た目と配置のルールは[画面の基本方針](docs/ui-guidelines.md)を参照してください。
 
 ## バックアップと復元
 

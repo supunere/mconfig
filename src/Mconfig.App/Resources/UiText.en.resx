@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -10,14 +10,11 @@
   <data name="Menu_Japanese" xml:space="preserve"><value>日本語 (Japanese)</value></data>
   <data name="Menu_English" xml:space="preserve"><value>English</value></data>
   <data name="Filter_All" xml:space="preserve"><value>All</value></data>
-  <data name="Combination_Count" xml:space="preserve"><value>{0} / {1} combinations</value></data>
+  <data name="Combination_Count" xml:space="preserve"><value>{0} of {1} combinations</value></data>
   <data name="Outcome_Disabled" xml:space="preserve"><value>Disabled</value></data>
   <data name="Outcome_Unassigned" xml:space="preserve"><value>Unassigned</value></data>
   <data name="Outcome_Unavailable" xml:space="preserve"><value>Cannot evaluate (data has problems)</value></data>
-  <data name="Comparison_Choose" xml:space="preserve"><value>Choose presets...</value></data>
-  <data name="Comparison_ShowAll" xml:space="preserve"><value>All presets</value></data>
-  <data name="Comparison_Automatic" xml:space="preserve"><value>Related presets</value></data>
-  <data name="Comparison_Limited" xml:space="preserve"><value>Showing {0} of {1} presets. Selecting a row keeps the displayed presets unchanged.</value></data>
+  <data name="Comparison_Choose" xml:space="preserve"><value>Presets to display...</value></data>
   <data name="Comparison_Manual" xml:space="preserve"><value>Showing the {0} chosen presets (of {1}).</value></data>
   <data name="Comparison_All" xml:space="preserve"><value>Showing all {0} presets.</value></data>
   <data name="Comparison_ColGroup" xml:space="preserve"><value>Group</value></data>
@@ -28,7 +25,7 @@
   <data name="Comparison_Uneditable" xml:space="preserve"><value>(not editable)</value></data>
   <data name="Comparison_Unavailable" xml:space="preserve"><value>This category cannot be shown because its data has problems. Check the integrity results in Data Management.</value></data>
   <data name="Comparison_Selected" xml:space="preserve"><value>{0} (selected combination)</value></data>
-  <data name="Comparison_ChooseTitle" xml:space="preserve"><value>Presets to compare</value></data>
+  <data name="Comparison_ChooseTitle" xml:space="preserve"><value>Presets to display</value></data>
   <data name="Button_OK" xml:space="preserve"><value>OK</value></data>
   <data name="Button_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Status_Unsaved" xml:space="preserve"><value>Unsaved changes</value></data>
@@ -79,6 +76,7 @@ The following backups and past committed versions were verified to load and vali
   <data name="Severity_Error" xml:space="preserve"><value>Error</value></data>
   <data name="Severity_Warning" xml:space="preserve"><value>Warning</value></data>
   <data name="Preset_Add" xml:space="preserve"><value>Add Preset</value></data>
+  <data name="Preset_Manage" xml:space="preserve"><value>Manage presets</value></data>
   <data name="Preset_Duplicate" xml:space="preserve"><value>Duplicate</value></data>
   <data name="Preset_Rename" xml:space="preserve"><value>Rename</value></data>
   <data name="Preset_Delete" xml:space="preserve"><value>Delete</value></data>
@@ -268,30 +266,22 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Title_Unsaved" xml:space="preserve"><value> (unsaved changes)</value></data>
   <data name="Filter_Clear" xml:space="preserve"><value>Clear Filters</value></data>
   <data name="Filter_ClearAll" xml:space="preserve"><value>Clear all</value></data>
-  <data name="Filter_Expand" xml:space="preserve"><value>Filters ▾</value></data>
-  <data name="Filter_Collapse" xml:space="preserve"><value>Filters ▴</value></data>
-  <data name="Filter_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Filter_Heading" xml:space="preserve"><value>Filters</value></data>
+  <data name="Combination_Heading" xml:space="preserve"><value>Combinations</value></data>
+  <data name="Filter_Expand" xml:space="preserve"><value>Show filters</value></data>
+  <data name="Filter_Collapse" xml:space="preserve"><value>Hide filters</value></data>
   <data name="Filter_None" xml:space="preserve"><value>No filters</value></data>
   <data name="Filter_SelectedCount" xml:space="preserve"><value>{0} filters applied</value></data>
-  <data name="Filter_Remove" xml:space="preserve"><value>Remove filter {0}: {1}</value></data>
-  <data name="Combination_ConditionsGroup" xml:space="preserve"><value>Combination conditions</value></data>
-  <data name="Combination_ResultsGroup" xml:space="preserve"><value>Assignment results</value></data>
   <data name="Combination_GoToAssignment" xml:space="preserve"><value>Go to assignment rule</value></data>
   <data name="Assignment_RuleNotFound" xml:space="preserve"><value>No assignment rule matches this combination.</value></data>
   <data name="Combination_Hint" xml:space="preserve"><value>Select a cell to show that category's values below</value></data>
   <data name="Values_Show" xml:space="preserve"><value>Show Values (F6)</value></data>
   <data name="Values_Hide" xml:space="preserve"><value>Hide Values (F6)</value></data>
   <data name="Values_Caption" xml:space="preserve"><value>Values of {0}</value></data>
-  <data name="Values_Selection" xml:space="preserve"><value>Selected combination: {0} → {1}</value></data>
-  <data name="Values_NoPreset" xml:space="preserve"><value>(no preset)</value></data>
-  <data name="Values_NoSelection" xml:space="preserve"><value>No combination selected (select a cell in the table above)</value></data>
-  <data name="Legend_Differs" xml:space="preserve"><value>Differs from selected preset</value></data>
+  <data name="Legend_Differs" xml:space="preserve"><value>Differences from selected preset</value></data>
   <data name="Comparison_SelectedMarker" xml:space="preserve"><value>Selected</value></data>
   <data name="Comparison_SelectionOutside" xml:space="preserve"><value>The selected preset is not displayed.</value></data>
   <data name="Comparison_IncludeSelected" xml:space="preserve"><value>Add to displayed presets</value></data>
-  <data name="Legend_Unsaved" xml:space="preserve"><value>Unsaved *</value></data>
-  <data name="Legend_Missing" xml:space="preserve"><value>(empty)</value></data>
-  <data name="Legend_Unused" xml:space="preserve"><value>Not used</value></data>
   <data name="CellInfo_Value" xml:space="preserve"><value>{0}: {1}</value></data>
   <data name="CellInfo_Changed" xml:space="preserve"><value>{0}: {1} → {2} (unsaved)</value></data>
   <data name="Status_UnsavedCount" xml:space="preserve"><value>Unsaved changes: {0}</value></data>
@@ -301,14 +291,9 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Status_UnassignedTip" xml:space="preserve"><value>Combinations and categories that match no assignment. Click to open Assignments.</value></data>
   <data name="SharedEdit_Title" xml:space="preserve"><value>Change Values</value></data>
   <data name="SharedEdit_Separator" xml:space="preserve"><value>, </value></data>
-  <data name="SharedEdit_Heading" xml:space="preserve"><value>{0} is also used by other combinations.</value></data>
-  <data name="SharedEdit_Body" xml:space="preserve"><value>Changing {0} also changes the values of all of these combinations.</value></data>
+  <data name="SharedEdit_Heading" xml:space="preserve"><value>{0} is used by the following combinations.</value></data>
   <data name="SharedEdit_ColPreset" xml:space="preserve"><value>Preset</value></data>
-  <data name="SharedEdit_Selected" xml:space="preserve"><value>Selected combination</value></data>
-  <data name="SharedEdit_AlsoChanges" xml:space="preserve"><value>Also changes</value></data>
-  <data name="SharedEdit_Guide" xml:space="preserve"><value>To give only this combination different values, cancel and split the preset in Assignments.</value></data>
   <data name="SharedEdit_Question" xml:space="preserve"><value>Change {0}?</value></data>
-  <data name="SharedEdit_Skip" xml:space="preserve"><value>Don't ask again about {0} until the next draft save</value></data>
   <data name="SharedEdit_Proceed" xml:space="preserve"><value>&amp;Change</value></data>
   <data name="Assignment_Categories" xml:space="preserve"><value>Categories</value></data>
   <data name="Assignment_CategoryLegend" xml:space="preserve"><value>* = category with unsaved changes</value></data>
@@ -388,8 +373,6 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Tool_Discard" xml:space="preserve"><value>Discard unsaved changes...</value></data>
   <data name="Status_NoErrors" xml:space="preserve"><value>✓ No errors</value></data>
   <data name="Combination_Title" xml:space="preserve"><value>Combinations</value></data>
-  <data name="Comparison_Mode" xml:space="preserve"><value>Compare: {0}</value></data>
-  <data name="Comparison_SelectedPresets" xml:space="preserve"><value>Selected presets</value></data>
   <data name="History_CurrentChanges" xml:space="preserve"><value>Current changes</value></data>
   <data name="History_CurrentChangeCount" xml:space="preserve"><value>{0} changes since the last history save</value></data>
   <data name="History_ValidationPending" xml:space="preserve"><value>Validation is not complete. Check the validation results.</value></data>
@@ -403,5 +386,6 @@ Save a draft before exiting? If you choose Don't Save, the {0} changes will be l
   <data name="Output_PendingTitle" xml:space="preserve"><value>Incomplete exports</value></data>
   <data name="Output_NoPending" xml:space="preserve"><value>There are no incomplete exports.</value></data>
   <data name="Output_PendingNeedsAttention" xml:space="preserve"><value>No export can be resumed. Check the recovery information below.</value></data>
+  <data name="Comparison_EditHint" xml:space="preserve"><value>Double-click or press F2 to edit.</value></data>
 </root>
 

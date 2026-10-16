@@ -1,202 +1,143 @@
-namespace Mconfig.App.Views;
+﻿namespace Mconfig.App.Views;
 
-/// <summary>全4画面の配色と余白。高コントラストではシステムの配色を使う。</summary>
+/// <summary>標準WinFormsの外観。コントロールの描画はWindowsに任せ、余白と状態色を揃える。</summary>
 internal static class UiAppearance
 {
-    public static readonly Font BodyFont = new("Segoe UI", 10.5f);
-    public static readonly Font HeadingFont = new("Segoe UI", 13.5f);
-    public static Color Background => SystemInformation.HighContrast ? SystemColors.Control : Color.FromArgb(247, 247, 248);
+    public static readonly Font BodyFont = SystemFonts.MessageBoxFont!;
+    public static readonly Font HeadingFont = new(BodyFont, FontStyle.Bold);
+    public static readonly Font SectionHeadingFont = BodyFont;
+    public static Color Background => SystemColors.Control;
     public static Color Surface => SystemColors.Window;
+    public static Color PaneHeader => SystemColors.Control;
     public static Color Text => SystemColors.WindowText;
-    public static Color Muted => SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(96, 104, 115);
-    public static Color Border => SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(226, 229, 233);
-    public static Color GroupBorder => SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(178, 190, 207);
-    public static Color Accent => SystemInformation.HighContrast ? SystemColors.Highlight : Color.FromArgb(36, 99, 180);
-    public static Color Selection => SystemInformation.HighContrast ? SystemColors.Highlight : Color.FromArgb(232, 241, 252);
+    public static Color Muted => SystemInformation.HighContrast ? SystemColors.WindowText : SystemColors.ControlDarkDark;
+    public static Color Border => SystemColors.ControlDark;
+    public static Color GroupBorder => SystemColors.ControlDark;
+    public static Color Accent => SystemColors.Highlight;
+    public static Color Selection => SystemInformation.HighContrast ? SystemColors.Highlight : SystemColors.GradientActiveCaption;
+    // 差分・未入力は業務上の状態表示として残す。
     public static Color Warning => SystemInformation.HighContrast ? SystemColors.Window : Color.FromArgb(255, 248, 226);
     public static Color Missing => SystemInformation.HighContrast ? SystemColors.Window : Color.FromArgb(253, 237, 238);
-    public static Color Unused => SystemInformation.HighContrast ? SystemColors.Window : Color.FromArgb(241, 242, 244);
+    public static Color Unused => SystemColors.Control;
+
+    // 領域見出しの印。標準PanelとLabelだけで構成し、選択色と区別する。
+    public static Control SectionTitle(Label label)
+    {
+        label.Font = HeadingFont;
+        label.Margin = Padding.Empty;
+        label.Anchor = AnchorStyles.Left;
+        TableLayoutPanel title = new()
+        {
+            AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            ColumnCount = 2, RowCount = 1, Margin = Padding.Empty,
+        };
+        title.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        title.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        title.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        Panel marker = new()
+        {
+            Size = new Size(3, label.Font.Height), Anchor = AnchorStyles.Left,
+            BackColor = SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(75, 145, 125),
+            Margin = new Padding(0, 0, 6, 0), TabStop = false,
+        };
+        title.Controls.Add(marker, 0, 0);
+        title.Controls.Add(label, 1, 0);
+        return title;
+    }
+
+    public static void ApplyPaneHeader(Control header)
+    {
+        header.BackColor = SystemColors.Control;
+        header.Padding = new Padding(8, 4, 8, 4);
+    }
+
+    public static void ArrangeSectionHeader(TableLayoutPanel header, Control[] labels, Control[] actions)
+    {
+        header.BackColor = SystemColors.Control;
+        header.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        header.Padding = new Padding(8, 4, 8, 4);
+        header.ColumnCount = labels.Length + actions.Length + 1;
+        header.RowCount = 1;
+        header.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        int column = 0;
+        foreach (Control label in labels)
+        {
+            label.Margin = new Padding(0, 0, 8, 0);
+            header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            label.Anchor = AnchorStyles.Left;
+            header.Controls.Add(label, column++, 0);
+        }
+        header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        column++;
+        foreach (Control action in actions)
+        {
+            action.Margin = new Padding(6, 0, 0, 0);
+            header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            action.Anchor = AnchorStyles.Right;
+            header.Controls.Add(action, column++, 0);
+        }
+    }
 
     public static void ApplyGrid(DataGridView grid)
     {
         grid.Font = BodyFont;
-        grid.BorderStyle = BorderStyle.None;
-        grid.Paint += (_, e) => DrawTableBorder(grid, e.Graphics);
-        grid.BackgroundColor = Surface;
-        grid.GridColor = Border;
-        grid.CellBorderStyle = DataGridViewCellBorderStyle.Single;
-        grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-        grid.EnableHeadersVisualStyles = false;
-        grid.ColumnHeadersDefaultCellStyle.BackColor = Background;
-        grid.ColumnHeadersDefaultCellStyle.ForeColor = Text;
-        grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = Background;
-        grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = Text;
-        grid.ColumnHeadersDefaultCellStyle.Padding = new Padding(8, 6, 8, 6);
+        grid.BorderStyle = BorderStyle.Fixed3D;
+        grid.BackgroundColor = SystemColors.Window;
+        grid.GridColor = SystemColors.ControlDark;
+        grid.EnableHeadersVisualStyles = true;
+        grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Raised;
+        grid.ColumnHeadersDefaultCellStyle.BackColor = SystemColors.Control;
+        grid.ColumnHeadersDefaultCellStyle.ForeColor = SystemColors.ControlText;
+        grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = SystemColors.Control;
+        grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = SystemColors.ControlText;
+        grid.ColumnHeadersDefaultCellStyle.Padding = new Padding(3, 2, 3, 2);
         grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-        grid.DefaultCellStyle.BackColor = Surface;
-        grid.DefaultCellStyle.ForeColor = Text;
-        grid.DefaultCellStyle.SelectionBackColor = Selection;
-        grid.DefaultCellStyle.SelectionForeColor = SystemInformation.HighContrast ? SystemColors.HighlightText : Text;
-        grid.DefaultCellStyle.Padding = new Padding(8, 4, 8, 4);
-        grid.RowTemplate.Height = 32;
-        grid.CellPainting += (_, e) =>
-        {
-            if (e.Graphics is not { } graphics || e.RowIndex < 0 || e.ColumnIndex < 0 || grid.CurrentCell is not { } cell
-                || cell.RowIndex != e.RowIndex || cell.ColumnIndex != e.ColumnIndex) return;
-            e.Paint(e.ClipBounds, e.PaintParts);
-            using Pen pen = new(Accent, Math.Max(1, grid.DeviceDpi / 96f));
-            Rectangle bounds = e.CellBounds;
-            bounds.Inflate(-1, -1);
-            graphics.DrawRectangle(pen, bounds);
-            e.Handled = true;
-        };
+        grid.DefaultCellStyle.BackColor = SystemColors.Window;
+        grid.DefaultCellStyle.ForeColor = SystemColors.WindowText;
+        grid.DefaultCellStyle.SelectionBackColor = SystemColors.Highlight;
+        grid.DefaultCellStyle.SelectionForeColor = SystemColors.HighlightText;
+        grid.DefaultCellStyle.Padding = new Padding(3, 1, 3, 1);
+        grid.RowTemplate.Height = 24;
     }
 
     public static void ApplyButton(Button button)
     {
-        button.FlatStyle = FlatStyle.Flat;
-        button.FlatAppearance.BorderColor = Border;
-        button.BackColor = Surface;
-        button.ForeColor = Text;
-        button.Padding = new Padding(8, 3, 8, 3);
+        button.FlatStyle = FlatStyle.Standard;
+        button.UseVisualStyleBackColor = true;
+        button.ForeColor = SystemColors.ControlText;
+        button.Padding = new Padding(3, 1, 3, 1);
     }
 
-    public static void ApplyPrimaryButton(Button button)
-    {
-        ApplyButton(button);
-        if (SystemInformation.HighContrast) return;
-        button.BackColor = Accent;
-        button.ForeColor = Color.White;
-        button.FlatAppearance.BorderColor = Accent;
-        button.FlatAppearance.MouseOverBackColor = Color.FromArgb(28, 80, 150);
-        button.FlatAppearance.MouseDownBackColor = Color.FromArgb(20, 63, 120);
-    }
+    public static void ApplyPrimaryButton(Button button) => ApplyButton(button);
 
     public static void ApplyList(ListView list)
     {
         list.Font = BodyFont;
-        list.BorderStyle = BorderStyle.None;
-        list.BackColor = Surface;
-        list.ForeColor = Text;
+        list.BorderStyle = BorderStyle.Fixed3D;
+        list.BackColor = SystemColors.Window;
+        list.ForeColor = SystemColors.WindowText;
         list.GridLines = true;
-        // データを読む表は、編集用の表と同じ配色の見出しを使う。
-        // 行は標準描画を保ち、選択・差分色・仮想モードにも対応する。
-        list.OwnerDraw = true;
-        list.DrawColumnHeader += (_, e) =>
-        {
-            using SolidBrush background = new(Background);
-            e.Graphics.FillRectangle(background, e.Bounds);
-            using Pen border = new(Border);
-            e.Graphics.DrawLine(border, e.Bounds.Right - 1, e.Bounds.Top, e.Bounds.Right - 1, e.Bounds.Bottom - 1);
-            e.Graphics.DrawLine(border, e.Bounds.Left, e.Bounds.Bottom - 1, e.Bounds.Right - 1, e.Bounds.Bottom - 1);
-            Rectangle text = Rectangle.Inflate(e.Bounds, -8, 0);
-            TextFormatFlags alignment = e.Header?.TextAlign switch
-            {
-                HorizontalAlignment.Center => TextFormatFlags.HorizontalCenter,
-                HorizontalAlignment.Right => TextFormatFlags.Right,
-                _ => TextFormatFlags.Left,
-            };
-            TextRenderer.DrawText(e.Graphics, e.Header?.Text ?? "", list.Font, text, Text,
-                alignment | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
-        };
-        list.DrawItem += (_, e) => e.DrawDefault = true;
-        list.DrawSubItem += (_, e) => e.DrawDefault = true;
+        list.OwnerDraw = false;
     }
 
     internal static void DrawTableBorder(Control table, Graphics graphics) =>
-        ControlPaint.DrawBorder(graphics, table.ClientRectangle, Border, ButtonBorderStyle.Solid);
+        ControlPaint.DrawBorder3D(graphics, table.ClientRectangle, Border3DStyle.Sunken);
 
-    /// <summary>カテゴリの選択は空白まで格子を引かず、フォーカスが右側へ移っても選択を明示する。</summary>
     public static void ApplyNavigationList(ListView list)
     {
-        list.Font = BodyFont;
-        list.BorderStyle = BorderStyle.None;
-        list.BackColor = Surface;
-        list.ForeColor = Text;
+        ApplyList(list);
         list.GridLines = false;
         list.HeaderStyle = ColumnHeaderStyle.None;
-        list.OwnerDraw = true;
-        // Details表示の行高を確保し、キー操作やアクセシビリティはListViewのまま保つ。
-        ImageList spacing = new() { ImageSize = new Size(1, list.LogicalToDeviceUnits(40)) };
-        list.SmallImageList = spacing;
-        list.Disposed += (_, _) => spacing.Dispose();
-        list.DrawItem += (_, e) =>
-        {
-            using SolidBrush background = new(e.Item.Selected ? Selection : Surface);
-            e.Graphics.FillRectangle(background, e.Bounds);
-        };
-        list.DrawSubItem += (_, e) =>
-        {
-            if (e.Item is not { } item || e.SubItem is not { } subItem) return;
-            bool selected = item.Selected;
-            using SolidBrush background = new(selected ? Selection : Surface);
-            e.Graphics.FillRectangle(background, e.Bounds);
-            Color foreground = selected && SystemInformation.HighContrast ? SystemColors.HighlightText
-                : e.ColumnIndex == 0 ? selected ? Accent : Text : subItem.ForeColor;
-            Rectangle text = e.Bounds;
-            text.X += 10;
-            text.Width = Math.Max(0, text.Width - 14);
-            if (selected && e.ColumnIndex == 0)
-            {
-                using SolidBrush accent = new(Accent);
-                e.Graphics.FillRectangle(accent, e.Bounds.Left, e.Bounds.Top + 4,
-                    list.LogicalToDeviceUnits(3), Math.Max(0, e.Bounds.Height - 8));
-            }
-            TextRenderer.DrawText(e.Graphics, subItem.Text, list.Font, text, foreground,
-                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
-        };
+        list.HideSelection = false;
     }
 
     public static void ApplyGroup(GroupBox group)
     {
-        group.BackColor = Surface;
-        group.ForeColor = Text;
-        group.Padding = new Padding(12);
-        group.Margin = new Padding(0, 0, 0, 12);
+        group.BackColor = SystemColors.Control;
+        group.ForeColor = SystemColors.ControlText;
+        group.Padding = new Padding(6);
+        group.Margin = new Padding(0, 0, 0, 6);
     }
 
-    public static ToolStripRenderer Renderer() => SystemInformation.HighContrast
-        ? new ToolStripSystemRenderer() : new NavigationRenderer();
-
-    private sealed class NavigationRenderer : ToolStripSystemRenderer
-    {
-        protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
-        {
-            e.Graphics.Clear(Surface);
-            using Pen pen = new(Border);
-            e.Graphics.DrawLine(pen, 0, e.ToolStrip.Height - 1, e.ToolStrip.Width, e.ToolStrip.Height - 1);
-        }
-
-        protected override void OnRenderButtonBackground(ToolStripItemRenderEventArgs e)
-        {
-            if (e.Item.Tag as string != "navigation") { base.OnRenderButtonBackground(e); return; }
-            Rectangle bounds = new(Point.Empty, e.Item.Size);
-            using SolidBrush back = new(e.Item.Selected ? Selection : Surface);
-            e.Graphics.FillRectangle(back, bounds);
-            if (e.Item is ToolStripButton { Checked: true })
-            {
-                using SolidBrush accent = new(Accent);
-                int thickness = Math.Max(2, (e.ToolStrip?.DeviceDpi ?? 96) * 2 / 96);
-                e.Graphics.FillRectangle(accent, 8, bounds.Height - thickness, Math.Max(0, bounds.Width - 16), thickness);
-            }
-        }
-
-        protected override void OnRenderSplitButtonBackground(ToolStripItemRenderEventArgs e)
-        {
-            if (e.Item.Tag as string != "primary" || !e.Item.Enabled) { base.OnRenderSplitButtonBackground(e); return; }
-            ToolStripSplitButton button = (ToolStripSplitButton)e.Item;
-            using SolidBrush back = new(Accent);
-            e.Graphics.FillRectangle(back, new Rectangle(Point.Empty, button.Size));
-            using Pen divider = new(Color.FromArgb(110, Color.White));
-            e.Graphics.DrawLine(divider, button.DropDownButtonBounds.Left, 5, button.DropDownButtonBounds.Left, button.Height - 5);
-            OnRenderArrow(new ToolStripArrowRenderEventArgs(e.Graphics, button, button.DropDownButtonBounds, Color.White, ArrowDirection.Down));
-        }
-
-        protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
-        {
-            if (e.Item.Enabled && e.Item.Tag as string == "primary") e.TextColor = Color.White;
-            else if (e.Item is ToolStripButton { Checked: true } && e.Item.Tag as string == "navigation") e.TextColor = Accent;
-            base.OnRenderItemText(e);
-        }
-    }
+    public static ToolStripRenderer Renderer() => new ToolStripSystemRenderer();
 }

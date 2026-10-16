@@ -1,10 +1,10 @@
-using Mconfig.App.Resources;
+﻿using Mconfig.App.Resources;
 using Mconfig.Presentation.Combinations;
 
 namespace Mconfig.App.Views;
 
 /// <summary>
-/// 組み合わせの表（参照のみ）。指定した条件はタグで示し、未指定の条件と割り当て結果を2段の見出しで区別する。
+/// 組み合わせの表（参照のみ）。条件はコンボボックスで指定し、未指定の条件と割り当て結果を標準の列見出しで表示する。
 /// セルを選ぶと、その組み合わせとカテゴリを Presenter へ知らせる（値の表がそのカテゴリに切り替わる）。選んだ行と列の見出しを強調する。
 /// 無効・未割当は色に加えて文言でも示す。絞り込みと選択は表示の状態だけで、データは変えない。
 /// 表は仮想モードで、見えている行だけを求めて表示する（全行を保持しない）。組み合わせが 5 万件を超えるときは、
@@ -17,23 +17,19 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
     private static Color SelectedRowBack => UiAppearance.Selection;
     private static Color SelectedHeaderBack => UiAppearance.Selection;
 
-    private readonly FlowLayoutPanel _filters = new() { AutoSize = true, WrapContents = true, Margin = new Padding(0) };
-    private readonly FlowLayoutPanel _filterArea = new() { Dock = DockStyle.Top, AutoSize = true, WrapContents = false, FlowDirection = FlowDirection.TopDown, Padding = new Padding(4) };
-    private readonly FlowLayoutPanel _filterBar = new() { AutoSize = true, WrapContents = true, Margin = new Padding(0) };
-    private readonly FlowLayoutPanel _filterTags = new() { AutoSize = true, WrapContents = true, Margin = new Padding(0) };
-    private readonly FlowLayoutPanel _filterFooter = new() { AutoSize = true, Margin = new Padding(0), Visible = false };
-    private readonly FlowLayoutPanel _countBar = new() { Dock = DockStyle.Top, AutoSize = true, WrapContents = true, Padding = new Padding(4, 2, 4, 4) };
+    private readonly FlowLayoutPanel _filters = new() { AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Dock = DockStyle.Fill, WrapContents = true, Margin = new Padding(0), Padding = new Padding(8, 0, 8, 4) };
+    private readonly TableLayoutPanel _filterArea = new() { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 1, RowCount = 3, Margin = new Padding(0), Padding = new Padding(0, 0, 0, 4) };
+    private readonly TableLayoutPanel _filterBar = new() { AutoSize = true, Dock = DockStyle.Fill, Margin = new Padding(0) };
+    private readonly TableLayoutPanel _countBar = new() { Dock = DockStyle.Top, AutoSize = true };
+    private readonly Label _filterHeading = new() { AutoSize = true, Font = UiAppearance.SectionHeadingFont, Margin = new Padding(4, 8, 12, 4) };
+    private readonly Label _combinationHeading = new() { AutoSize = true, Font = UiAppearance.SectionHeadingFont, Margin = new Padding(4, 8, 12, 4) };
     private readonly Button _filterToggle = new() { AutoSize = true };
-    private readonly Button _filterClose = new() { AutoSize = true };
-    private readonly Label _filterStatus = new() { AutoSize = true, Margin = new Padding(8, 10, 12, 3) };
-    private readonly Panel _columnGroups = new() { Dock = DockStyle.Top, Height = 28 };
-    private readonly Label _conditionsGroup = new() { TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(8, 0, 0, 0) };
-    private readonly Label _resultsGroup = new() { TextAlign = ContentAlignment.MiddleLeft, Padding = new Padding(8, 0, 0, 0) };
+    private readonly Label _filterStatus = new() { AutoSize = true, Margin = new Padding(0, 8, 12, 4) };
+    private readonly Label _filterSummary = new() { Dock = DockStyle.Fill, AutoSize = true, Margin = new Padding(8, 0, 8, 4), Visible = false };
     private readonly Dictionary<string, ComboBox> _filterEditors = new(StringComparer.Ordinal);
     private readonly Button _clear = new() { AutoSize = true, Margin = new Padding(12, 3, 3, 3) };
     private readonly Button _goToAssignment = new() { AutoSize = true, Enabled = false };
-    private readonly Label _count = new() { AutoSize = true, Margin = new Padding(12, 8, 3, 3), ForeColor = SystemColors.GrayText };
-    private readonly Button _showValues = new() { AutoSize = true, Margin = new Padding(12, 3, 3, 3), Visible = false };
+    private readonly Label _count = new() { AutoSize = true, Margin = new Padding(0, 8, 3, 4), ForeColor = SystemColors.GrayText };
     private readonly Label _warning = new()
     {
         Dock = DockStyle.Top, AutoSize = true, Visible = false, Padding = new Padding(6, 4, 6, 4),
@@ -61,62 +57,54 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
     private (int Index, CombinationDisplayRow Row)? _rowCache;
     private Font? _bold;
     private bool _updating;
-    private bool _filtersExpanded;
+    private bool _filtersExpanded = true;
     private bool _spaceRequestPending;
 
     public CombinationListView()
     {
         Dock = DockStyle.Fill;
         Font = UiAppearance.BodyFont;
-        BackColor = UiAppearance.Surface;
+        BackColor = SystemColors.Window;
         UiAppearance.ApplyGrid(_grid);
         _grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
-        _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-        _grid.ColumnHeadersHeight = LogicalToDeviceUnits(36);
+        _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
         UiAppearance.ApplyButton(_clear);
-        UiAppearance.ApplyButton(_showValues);
         UiAppearance.ApplyButton(_goToAssignment);
         UiAppearance.ApplyButton(_filterToggle);
-        UiAppearance.ApplyButton(_filterClose);
         _count.ForeColor = UiAppearance.Muted;
         _filterStatus.ForeColor = UiAppearance.Muted;
-        _filters.Visible = false;
-        _filterBar.Controls.AddRange([_filterToggle, _filterStatus, _clear]);
-        _filterFooter.Controls.Add(_filterClose);
-        _filterArea.Controls.AddRange([_filterBar, _filterTags, _filters, _filterFooter]);
-        _countBar.Controls.AddRange([_count, _goToAssignment, _showValues]);
-        _columnGroups.Height = LogicalToDeviceUnits(28);
-        _columnGroups.Controls.AddRange([_conditionsGroup, _resultsGroup]);
-        _columnGroups.Paint += (_, e) => UiAppearance.DrawTableBorder(_columnGroups, e.Graphics);
-        _conditionsGroup.Paint += DrawConditionBoundary;
-        Panel table = new() { Dock = DockStyle.Fill };
-        table.Controls.Add(_grid);
-        table.Controls.Add(_columnGroups);
+        UiAppearance.ArrangeSectionHeader(_filterBar, [UiAppearance.SectionTitle(_filterHeading), _filterStatus, _clear], [_filterToggle]);
+        UiAppearance.ArrangeSectionHeader(_countBar, [UiAppearance.SectionTitle(_combinationHeading), _count], [_goToAssignment]);
+        _filterArea.BackColor = SystemInformation.HighContrast ? SystemColors.Control : Color.FromArgb(244, 244, 244);
+        _filterBar.BackColor = Color.Transparent;
+        _countBar.BackColor = SystemColors.Window;
+        _filterArea.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        for (int row = 0; row < 3; row++) _filterArea.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        _filterArea.Controls.Add(_filterBar, 0, 0);
+        _filterArea.Controls.Add(_filterSummary, 0, 1);
+        _filterArea.Controls.Add(_filters, 0, 2);
         Resize += (_, _) =>
         {
-            int width = Math.Max(LogicalToDeviceUnits(180), ClientSize.Width - _filterArea.Padding.Horizontal - 8);
-            foreach (Control area in new Control[] { _filterBar, _filterTags, _filters, _filterFooter })
-                area.MaximumSize = new Size(width, 0);
+            int width = Math.Max(LogicalToDeviceUnits(180), ClientSize.Width - _filterArea.Padding.Horizontal);
+            _filters.MaximumSize = new Size(width, 0);
+            _filterSummary.MaximumSize = new Size(Math.Max(1, width - _filterSummary.Margin.Horizontal), 0);
             _count.MaximumSize = new Size(Math.Max(200, ClientSize.Width - 40), 0);
             RequestTableSpace();
         };
         _filterArea.SizeChanged += (_, _) => RequestTableSpace();
         _warning.SizeChanged += (_, _) => RequestTableSpace();
-        Controls.Add(table);
+        Controls.Add(_grid);
         Controls.Add(_warning);
         Controls.Add(_countBar);
         Controls.Add(_filterArea);
-        _grid.Scroll += (_, _) => UpdateColumnGroups();
-        _grid.ColumnWidthChanged += (_, _) => UpdateColumnGroups();
-        _grid.SizeChanged += (_, _) =>
-        {
-            UpdateColumnGroups();
-        };
-        _grid.Paint += DrawConditionBoundary;
-        // Scroll通知の時点では列の表示位置が更新前のことがあるため、描画時にも同期する。
-        _grid.Paint += (_, _) => UpdateColumnGroups();
         _grid.CellValueNeeded += OnCellValueNeeded;
         _grid.CellFormatting += OnCellFormatting;
+        _grid.CellClick += (_, e) =>
+        {
+            // 選択変更だけに依存せず、選択済みセルの再クリックでも値を開く。
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+                TableCellClicked?.Invoke(this, EventArgs.Empty);
+        };
         _grid.CurrentCellChanged += (_, _) =>
         {
             if (_updating || _shown is null || _grid.CurrentCell is not { } cell) return;
@@ -125,24 +113,21 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
             CellSelected?.Invoke(this, new CellSelectedEventArgs(cell.RowIndex, category));
         };
         _clear.Click += (_, _) => FiltersCleared?.Invoke(this, EventArgs.Empty);
-        _showValues.Click += (_, _) => ShowValuesRequested?.Invoke(this, EventArgs.Empty);
         _goToAssignment.Click += (_, _) => AssignmentRequested?.Invoke(this, EventArgs.Empty);
         _filterToggle.Click += (_, _) => SetFiltersExpanded(!_filtersExpanded);
-        _filterClose.Click += (_, _) => SetFiltersExpanded(false);
         ApplyTexts();
     }
 
     public event EventHandler<FilterChangedEventArgs>? FilterChanged;
     public event EventHandler<CellSelectedEventArgs>? CellSelected;
+    public event EventHandler? TableCellClicked;
     public event EventHandler? FiltersCleared;
     public event EventHandler? AssignmentRequested;
 
-    /// <summary>値の表を隠しているときの「値を表示」。</summary>
-    public event EventHandler? ShowValuesRequested;
     public event EventHandler? TableSpaceRequested;
 
     public int PreferredTableHeight => _filterArea.Height + _countBar.Height
-        + (_warning.Visible ? _warning.Height : 0) + _columnGroups.Height + _grid.ColumnHeadersHeight
+        + (_warning.Visible ? _warning.Height : 0) + _grid.ColumnHeadersHeight
         + LogicalToDeviceUnits(96) + SystemInformation.HorizontalScrollBarHeight;
 
     private void RequestTableSpace()
@@ -159,7 +144,8 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
     private void SetFiltersExpanded(bool expanded)
     {
         _filtersExpanded = expanded;
-        _filters.Visible = _filterFooter.Visible = expanded;
+        _filters.Visible = expanded;
+        ShowFilterStatus();
         _filterToggle.Text = UiText.Get(expanded ? "Filter_Collapse" : "Filter_Expand");
         RequestTableSpace();
     }
@@ -167,22 +153,27 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
     public void ApplyTexts()
     {
         _clear.Text = UiText.Get("Filter_ClearAll");
-        _filterClose.Text = UiText.Get("Filter_Close");
+        _filterHeading.Text = UiText.Get("Filter_Heading");
+        _combinationHeading.Text = UiText.Get("Combination_Heading");
         _filterToggle.Text = UiText.Get(_filtersExpanded ? "Filter_Collapse" : "Filter_Expand");
-        _showValues.Text = UiText.Get("Values_Show");
         _goToAssignment.Text = UiText.Get("Combination_GoToAssignment");
-        _conditionsGroup.Text = UiText.Get("Combination_ConditionsGroup");
-        _resultsGroup.Text = UiText.Get("Combination_ResultsGroup");
-        foreach (ComboBox editor in _filterEditors.Values) editor.Items[0] = UiText.Get("Filter_All");
-        ShowFilterTags();
+        bool wasUpdating = _updating;
+        _updating = true;
+        try
+        {
+            foreach (ComboBox editor in _filterEditors.Values) editor.Items[0] = UiText.Get("Filter_All");
+        }
+        finally
+        {
+            _updating = wasUpdating;
+        }
+        ShowFilterStatus();
         if (_shown is null) return;
         ShowCount(_shown);
         ShowWarning(_shown);
         _grid.Invalidate();
     }
 
-    /// <summary>値の表を隠しているか。隠している間は「値を表示」を出す。</summary>
-    public void SetValuesHidden(bool hidden) => _showValues.Visible = hidden;
 
     public void FocusTable() => _grid.Focus();
 
@@ -202,13 +193,29 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
                 foreach (FilterDisplay filter in filters)
                 {
                     int width = LogicalToDeviceUnits(180);
-                    FlowLayoutPanel field = new() { AutoSize = true, FlowDirection = FlowDirection.TopDown, WrapContents = false, Margin = new Padding(4, 6, 12, 6) };
-                    Label label = new() { Text = filter.Label, AutoSize = true, MaximumSize = new Size(width, 0), Margin = new Padding(3, 0, 3, 4) };
-                    ComboBox combo = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = width, Tag = filter.Key, AccessibleName = filter.Label };
+                    // ComboBoxはフォント適用後に高さが変わるため、各行を内容に合わせて測る。
+                    TableLayoutPanel field = new()
+                    {
+                        AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                        ColumnCount = 1, RowCount = 2, Margin = new Padding(0, 4, 12, 4), Padding = new Padding(0, 0, 0, 3),
+                    };
+                    field.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, width));
+                    field.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                    field.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                    Label label = new() { Text = filter.Label, AutoSize = true, MaximumSize = new Size(width, 0), Margin = new Padding(0, 0, 0, 4) };
+                    ComboBox combo = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = width, Margin = new Padding(0), Tag = filter.Key, AccessibleName = filter.Label };
                     combo.Items.Add(UiText.Get("Filter_All"));
                     foreach (string value in filter.Values) combo.Items.Add(value);
                     combo.SelectedIndexChanged += OnFilterSelected;
-                    field.Controls.AddRange([label, combo]);
+                    field.Layout += (_, _) =>
+                    {
+                        // 標準の自動サイズはネイティブComboBoxの高さより小さく測る場合がある。
+                        int height = label.GetPreferredSize(new Size(width, 0)).Height + label.Margin.Vertical
+                            + combo.PreferredHeight + combo.Margin.Vertical + field.Padding.Vertical;
+                        if (field.MinimumSize.Height != height) field.MinimumSize = new Size(0, height);
+                    };
+                    field.Controls.Add(label, 0, 0);
+                    field.Controls.Add(combo, 0, 1);
                     _filters.Controls.Add(field);
                     _filterEditors.Add(filter.Key, combo);
                 }
@@ -219,7 +226,7 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
                 combo.SelectedIndex = filter.Selected is null ? 0 : 1 + filter.Values.ToList().IndexOf(filter.Selected);
             }
             _shownFilters = filters;
-            ShowFilterTags();
+            ShowFilterStatus();
         }
         finally
         {
@@ -228,24 +235,15 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
         }
     }
 
-    private void ShowFilterTags()
+    private void ShowFilterStatus()
     {
-        _filterTags.SuspendLayout();
-        foreach (Control old in _filterTags.Controls.Cast<Control>().ToArray()) old.Dispose();
-        foreach (FilterDisplay filter in _shownFilters.Where(f => f.Selected is not null))
-        {
-            Button tag = new() { AutoSize = true, Text = $"{filter.Label}: {filter.Selected}  ×", AccessibleName = UiText.Format("Filter_Remove", filter.Label, filter.Selected!), Margin = new Padding(3) };
-            UiAppearance.ApplyButton(tag);
-            tag.BackColor = UiAppearance.Selection;
-            tag.ForeColor = SystemInformation.HighContrast ? SystemColors.HighlightText : UiAppearance.Text;
-            tag.Click += (_, _) => FilterChanged?.Invoke(this, new FilterChangedEventArgs(filter.Key, null));
-            _filterTags.Controls.Add(tag);
-        }
         int count = _shownFilters.Count(f => f.Selected is not null);
-        _filterTags.Visible = count > 0;
         _clear.Enabled = count > 0;
-        _filterStatus.Text = count == 0 ? UiText.Get("Filter_None") : UiText.Format("Filter_SelectedCount", count);
-        _filterTags.ResumeLayout(true);
+        string status = count == 0 ? UiText.Get("Filter_None") : UiText.Format("Filter_SelectedCount", count);
+        _filterStatus.Text = status;
+        FilterDisplay[] selected = _shownFilters.Where(f => f.Selected is not null).ToArray();
+        _filterSummary.Text = string.Join(" / ", selected.Select(f => $"{f.Label}: {f.Selected}"));
+        _filterSummary.Visible = !_filtersExpanded && selected.Length > 0;
         RequestTableSpace();
     }
 
@@ -288,6 +286,15 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
             // 仮想モードなので、行は見えている分だけ CellValueNeeded で求める
             _grid.RowCount = table.Rows.Count;
             _grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
+            // 標準テーマの見出し内側の余白と、選択時の太字も確保する。
+            // 絞り込みで列を作り直した直後に見出しが省略されるのを防ぐ。
+            _bold ??= new Font(_grid.Font, FontStyle.Bold);
+            foreach (DataGridViewColumn column in _grid.Columns)
+            {
+                int headerWidth = TextRenderer.MeasureText(column.HeaderText, _bold).Width
+                    + _grid.ColumnHeadersDefaultCellStyle.Padding.Horizontal + LogicalToDeviceUnits(16);
+                column.Width = Math.Max(column.Width, headerWidth);
+            }
             if (firstRow >= 0 && firstRow < _grid.RowCount) _grid.FirstDisplayedScrollingRowIndex = firstRow;
             _grid.HorizontalScrollingOffset = horizontal;
         }
@@ -296,42 +303,7 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
             _grid.ResumeLayout();
         }
         ShowWarning(table);
-        UpdateColumnGroups();
         RequestTableSpace();
-    }
-
-    private void UpdateColumnGroups()
-    {
-        if (_shown is null) return;
-        _columnGroups.BackColor = UiAppearance.Background;
-        ShowColumnGroup(_conditionsGroup, 0, _shown.SpecColumns.Count, UiAppearance.Background);
-        ShowColumnGroup(_resultsGroup, _shown.SpecColumns.Count, _grid.Columns.Count,
-            SystemInformation.HighContrast ? SystemColors.Control : UiAppearance.Selection);
-        _columnGroups.Invalidate();
-    }
-
-    private void ShowColumnGroup(Label label, int start, int end, Color background)
-    {
-        Rectangle bounds = Rectangle.Empty;
-        for (int c = start; c < Math.Min(end, _grid.Columns.Count); c++)
-        {
-            Rectangle cell = _grid.GetColumnDisplayRectangle(c, true);
-            if (cell.Width > 0) bounds = bounds.IsEmpty ? cell : Rectangle.Union(bounds, cell);
-        }
-        label.Visible = !bounds.IsEmpty;
-        label.Bounds = new Rectangle(bounds.X, 0, bounds.Width, _columnGroups.Height);
-        label.BackColor = background;
-        label.ForeColor = UiAppearance.Text;
-    }
-
-    private void DrawConditionBoundary(object? sender, PaintEventArgs e)
-    {
-        if (sender is not Control surface || _shown is null || _shown.SpecColumns.Count == 0 || _shown.SpecColumns.Count >= _grid.Columns.Count) return;
-        Rectangle last = _grid.GetColumnDisplayRectangle(_shown.SpecColumns.Count - 1, true);
-        if (last.Width <= 0) return;
-        int x = last.Right - 1 - (ReferenceEquals(surface, _conditionsGroup) ? _conditionsGroup.Left : 0);
-        using Pen pen = new(UiAppearance.GroupBorder, Math.Max(1, _grid.DeviceDpi / 96f));
-        e.Graphics.DrawLine(pen, x, 0, x, surface.ClientSize.Height);
     }
 
     private void ShowWarning(CombinationTableDisplay table)
@@ -392,8 +364,7 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
         {
             DataGridViewColumnHeaderCell header = _grid.Columns[c].HeaderCell;
             bool selected = c == categoryColumn;
-            header.Style.BackColor = selected ? SelectedHeaderBack : c < table.SpecColumns.Count ? UiAppearance.Background
-                : SystemInformation.HighContrast ? SystemColors.Control : UiAppearance.Selection;
+            header.Style.BackColor = selected ? SelectedHeaderBack : SystemColors.Control;
             header.Style.ForeColor = selected && SystemInformation.HighContrast ? SystemColors.HighlightText : Color.Empty;
             header.Style.Font = selected ? _bold ??= new Font(_grid.Font, FontStyle.Bold) : null;
         }
@@ -413,7 +384,6 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
         }
         // 選んだ行の色は描くときに決めるので、描き直させる
         _grid.Invalidate();
-        UpdateColumnGroups();
     }
 
     private void ShowCount(CombinationTableDisplay table) =>
@@ -436,7 +406,10 @@ internal sealed class CombinationListView : UserControl, ICombinationListView
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        if (disposing) _bold?.Dispose();
+        if (disposing)
+        {
+            _bold?.Dispose();
+        }
     }
 
     private void OnFilterSelected(object? sender, EventArgs e)

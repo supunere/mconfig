@@ -70,7 +70,7 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         foreach (Button button in new[] { _validate, _goToIssue, _copyIssues, _exportUncovered, _saveDraft, _discard, _reloadHistory, _moreHistory, _compare, _restore }) UiAppearance.ApplyButton(button);
         UiAppearance.ApplyPrimaryButton(_commit);
         _state.ForeColor = _authorLabel.ForeColor = UiAppearance.Muted;
-        _reason.BorderStyle = BorderStyle.FixedSingle;
+        _reason.BorderStyle = BorderStyle.Fixed3D;
 
         // 左下: 検証結果
         _issues.Columns.Add("", 70);

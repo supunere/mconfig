@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Globalization;
 using Mconfig.App.Resources;
 using Mconfig.Presentation.Common;
@@ -47,20 +47,20 @@ internal sealed class StatusStripView : StatusStrip, IWorkspaceStatusView
     {
         _workspacePath = workspacePath;
         Font = UiAppearance.BodyFont;
-        BackColor = UiAppearance.Surface;
+        BackColor = SystemColors.Control;
         Renderer = UiAppearance.Renderer();
         SizingGrip = false;
-        Padding = new Padding(12, 6, 12, 6);
+        Padding = new Padding(1, 0, 8, 0);
         ShowItemToolTips = true;
         Items.AddRange([_cell, _saved, _committed, _errors, _unassigned, _mode, _workspace]);
         foreach (ToolStripStatusLabel item in Items.OfType<ToolStripStatusLabel>())
         {
             item.BorderSides = ToolStripStatusLabelBorderSides.None;
-            item.Margin = new Padding(4, 0, 4, 0);
-            item.Padding = new Padding(6, 3, 6, 3);
+            item.Margin = new Padding(2, 0, 2, 0);
+            item.Padding = new Padding(3, 1, 3, 1);
         }
-        _workspace.AutoSize = false;
-        _workspace.Width = 160;
+        // 固定幅でワークスペース名を切らず、通常の自動幅と末尾余白で表示する。
+        _workspace.AutoSize = true;
         _workspace.AutoToolTip = false;
         _errors.Click += (_, _) => { if (_errors.IsLink) ErrorsClicked?.Invoke(this, EventArgs.Empty); };
         _unassigned.Click += (_, _) => { if (_unassigned.IsLink) UnassignedClicked?.Invoke(this, EventArgs.Empty); };
@@ -81,21 +81,21 @@ internal sealed class StatusStripView : StatusStrip, IWorkspaceStatusView
         _saved.Text = status.Saving ? UiText.Get("Status_Saving")
             : status.Unsaved ? UiText.Format("Status_UnsavedCount", status.UnsavedChanges)
             : UiText.Get("Status_Saved");
-        _saved.BackColor = status.Unsaved || status.Saving ? UiAppearance.Warning : UiAppearance.Surface;
+        _saved.BackColor = status.Unsaved || status.Saving ? UiAppearance.Warning : SystemColors.Control;
         _saved.ForeColor = UiAppearance.Text;
         _committed.Text = UiText.Get(status.Uncommitted ? "Status_Uncommitted" : "Status_Committed");
-        _committed.BackColor = status.Uncommitted ? UiAppearance.Warning : UiAppearance.Surface;
+        _committed.BackColor = status.Uncommitted ? UiAppearance.Warning : SystemColors.Control;
         _committed.ForeColor = status.Uncommitted ? UiAppearance.Text : UiAppearance.Muted;
         _errors.Text = status.Errors > 0 ? UiText.Format("Status_Errors", status.Errors) : UiText.Get("Status_NoErrors");
         _errors.IsLink = status.Errors > 0;
-        _errors.BackColor = status.Errors > 0 ? UiAppearance.Missing : UiAppearance.Surface;
+        _errors.BackColor = status.Errors > 0 ? UiAppearance.Missing : SystemColors.Control;
         _errors.ForeColor = _errors.LinkColor = status.Errors > 0 && !SystemInformation.HighContrast ? Color.FromArgb(163, 37, 43) : UiAppearance.Muted;
         // 組み合わせが多すぎて数えていないときは、検証で確かめるよう示す
         _unassigned.Text = status.Unassigned is int unassigned
             ? UiText.Format("Status_Unassigned", unassigned)
             : UiText.Get("Status_UnassignedNotCounted");
         _unassigned.IsLink = status.Unassigned > 0;
-        _unassigned.BackColor = status.Unassigned > 0 || status.Unassigned is null ? UiAppearance.Warning : UiAppearance.Surface;
+        _unassigned.BackColor = status.Unassigned > 0 || status.Unassigned is null ? UiAppearance.Warning : SystemColors.Control;
         _unassigned.ForeColor = _unassigned.LinkColor = UiAppearance.Muted;
         _mode.Text = status.RecoveryPending ? UiText.Get("Status_RecoveryPending") : status.ReadOnly ? UiText.Get("Status_ReadOnly") : "";
         _mode.BackColor = UiAppearance.Missing;
@@ -156,6 +156,7 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
     private bool _switching;
     private bool _closeConfirmed;
     private bool _adjustingSplit;
+    private bool _valuesHidden;
 
     public MainForm(DisplayLanguage language, string workspacePath, bool readOnly)
     {
@@ -166,7 +167,7 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         Size = new Size(1280, 860);
         MinimumSize = new Size(760, 520);
         BackColor = UiAppearance.Background;
-        _host.Padding = new Padding(12, 8, 12, 8);
+        _host.Padding = new Padding(4);
 
         CombinationList = new CombinationListView();
         Comparison = new PresetComparisonView();
@@ -181,20 +182,21 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         _split.Panel2MinSize = 120;
         _split.SplitterMoved += (_, _) =>
         {
-            if (!_adjustingSplit && _split.Height > 0 && !_split.Panel2Collapsed) _splitRatio = (double)_split.SplitterDistance / _split.Height;
+            if (!_adjustingSplit && _split.Height > 0 && !_valuesHidden) _splitRatio = (double)_split.SplitterDistance / _split.Height;
         };
         CombinationList.TableSpaceRequested += (_, _) => ApplySplitRatio();
         Load += (_, _) => ApplySplitRatio();
+        _split.SizeChanged += (_, _) => ApplySplitRatio();
         _host.Controls.AddRange([_split, Assignments, History, Export]);
         Assignments.Dock = DockStyle.Fill;
 
-        ToolStrip tools = new() { GripStyle = ToolStripGripStyle.Hidden, Padding = new Padding(12, 6, 12, 6), Font = UiAppearance.BodyFont, BackColor = UiAppearance.Surface, Renderer = UiAppearance.Renderer() };
+        ToolStrip tools = new() { GripStyle = ToolStripGripStyle.Hidden, Padding = new Padding(2), Font = UiAppearance.BodyFont, BackColor = SystemColors.Control, Renderer = UiAppearance.Renderer() };
         MenuStrip menu = new();
         int index = 1;
         foreach (AppScreen screen in Enum.GetValues<AppScreen>())
         {
             AppScreen target = screen;
-            ToolStripButton button = new() { DisplayStyle = ToolStripItemDisplayStyle.Text, Margin = new Padding(0, 0, 4, 0), Padding = new Padding(10, 8, 10, 8), Tag = "navigation" };
+            ToolStripButton button = new() { DisplayStyle = ToolStripItemDisplayStyle.Text, Margin = new Padding(0, 0, 2, 0), Padding = new Padding(4, 2, 4, 2), Tag = "navigation" };
             ToolStripMenuItem item = new() { ShortcutKeys = Keys.Control | (Keys.D0 + index++) };
             button.Click += (_, _) => RequestScreen(target);
             item.Click += (_, _) => RequestScreen(target);
@@ -225,8 +227,13 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         menu.Items.AddRange([_fileMenu, _viewMenu]);
 
         Comparison.HideRequested += (_, _) => ToggleValues();
+        CombinationList.TableCellClicked += (_, _) =>
+        {
+            if (_screen != AppScreen.Combinations || !ValuesHidden) return;
+            ValuesHidden = false;
+            ShowCellInfo();
+        };
         Comparison.CellInfoChanged += (_, _) => ShowCellInfo();
-        CombinationList.ShowValuesRequested += (_, _) => ToggleValues();
         Status.StatusChanged += (_, _) => { UpdateTitle(); UpdateSaveStatus(); };
         Status.ErrorsClicked += (_, _) => ShowErrors();
         Status.UnassignedClicked += (_, _) => RequestScreen(AppScreen.Assignments);
@@ -274,13 +281,13 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public bool ValuesHidden
     {
-        get => _split.Panel2Collapsed;
+        get => _valuesHidden;
         set
         {
-            _split.Panel2Collapsed = value;
+            _valuesHidden = value;
             _hideValuesMenu.Checked = value;
-            CombinationList.SetValuesHidden(value);
-            if (!value && IsHandleCreated) ApplySplitRatio();
+            Comparison.SetContentHidden(value);
+            if (IsHandleCreated) ApplySplitRatio();
         }
     }
 
@@ -289,12 +296,17 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
 
     private void ApplySplitRatio()
     {
-        if (_split.Panel2Collapsed || _split.Height <= _split.Panel1MinSize + _split.Panel2MinSize) return;
-        int preferred = Math.Max((int)(_split.Height * _splitRatio), CombinationList.PreferredTableHeight);
-        int distance = Math.Clamp(preferred, _split.Panel1MinSize, _split.Height - _split.Panel2MinSize - _split.SplitterWidth);
-        if (_split.SplitterDistance == distance) return;
+        if (_adjustingSplit || _split.Height <= _split.Panel1MinSize + _split.SplitterWidth) return;
         _adjustingSplit = true;
-        try { _split.SplitterDistance = distance; }
+        try
+        {
+            int minimum = _valuesHidden ? Comparison.CollapsedHeight : LogicalToDeviceUnits(120);
+            _split.Panel2MinSize = Math.Min(minimum, _split.Height - _split.Panel1MinSize - _split.SplitterWidth);
+            _split.IsSplitterFixed = _valuesHidden;
+            int maximum = _split.Height - _split.Panel2MinSize - _split.SplitterWidth;
+            int preferred = _valuesHidden ? maximum : Math.Max((int)(_split.Height * _splitRatio), CombinationList.PreferredTableHeight);
+            _split.SplitterDistance = Math.Clamp(preferred, _split.Panel1MinSize, maximum);
+        }
         finally { _adjustingSplit = false; }
     }
 

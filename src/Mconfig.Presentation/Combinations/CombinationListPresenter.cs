@@ -90,19 +90,16 @@ public interface ICombinationListView
 
 /// <summary>
 /// 一覧で選ばれている状態を比較表へ渡す文脈。Categories は表示順のカテゴリと表示名、SelectedPresets は選んだ組み合わせの
-/// カテゴリごとの割り当て先、RelatedPresets は表示中（フィルター後）の組み合わせに割り当てられたプリセット（初出順）。
-/// SelectedCategory は値の表に出すカテゴリ（選んだセルのカテゴリ。まだ選んでいなければ先頭）、
-/// SelectedCombinationLabel は選んだ組み合わせの仕様値を仕様の軸の順に並べたもの。
+/// カテゴリごとの割り当て先。
+/// SelectedCategory は値の表に出すカテゴリ（選んだセルのカテゴリ。まだ選んでいなければ先頭）。
 /// </summary>
 public sealed record CombinationContext(
     SessionVersion Version,
     IReadOnlyList<ColumnDisplay> Categories,
     IReadOnlyDictionary<string, string>? SelectedCombination,
-    IReadOnlyDictionary<string, string> SelectedPresets,
-    IReadOnlyDictionary<string, IReadOnlyList<string>> RelatedPresets)
+    IReadOnlyDictionary<string, string> SelectedPresets)
 {
     public string? SelectedCategory { get; init; }
-    public IReadOnlyList<string>? SelectedCombinationLabel { get; init; }
 }
 
 /// <summary>
@@ -117,7 +114,7 @@ public sealed class CombinationListPresenter : QueryPresenter<CombinationListRea
     private readonly Dictionary<string, string?> _filters = new(StringComparer.Ordinal);
     private IReadOnlyDictionary<string, string>? _selected;
     private string? _category;
-    private (CombinationListReadModel Model, string Filters, CombinationRows Rows, IReadOnlyDictionary<string, IReadOnlyList<string>> Related)? _shown;
+    private (CombinationListReadModel Model, string Filters, CombinationRows Rows)? _shown;
     private DisplayRows? _displayRows;
 
     public CombinationListPresenter(
@@ -189,16 +186,15 @@ public sealed class CombinationListPresenter : QueryPresenter<CombinationListRea
 
     /// <summary>
     /// 絞り込んだ一覧。リードモデルか絞り込みが変わったときだけ作り直し、選択だけの変更では使い回す。
-    /// 関連プリセットは割り当て行の条件集合から一度だけ求め、組み合わせ全件は評価しない。
     /// </summary>
-    private (CombinationListReadModel Model, string Filters, CombinationRows Rows, IReadOnlyDictionary<string, IReadOnlyList<string>> Related) Shown(
+    private (CombinationListReadModel Model, string Filters, CombinationRows Rows) Shown(
         CombinationListReadModel model)
     {
         string filters = string.Join("\u0001", _filters.OrderBy(f => f.Key, StringComparer.Ordinal).Select(f => $"{f.Key}={f.Value}"));
         if (_shown is { } shown && ReferenceEquals(shown.Model, model) && shown.Filters == filters) return shown;
 
         CombinationRows rows = model.Rows.Restrict(_filters);
-        _shown = (model, filters, rows, rows.RelatedPresets());
+        _shown = (model, filters, rows);
         // 同じ一覧のあいだは同じ行の一覧を渡し、View が選択だけを描き直せるようにする
         _displayRows = new DisplayRows(rows, model.Categories);
         return _shown.Value;
@@ -223,10 +219,9 @@ public sealed class CombinationListPresenter : QueryPresenter<CombinationListRea
                 selectedPresets[category] = name;
         }
         ContextChanged?.Invoke(this, new CombinationContext(model.Version, categories, selected?.Values,
-            new ReadOnlyDictionary<string, string>(selectedPresets), Shown(model).Related)
+            new ReadOnlyDictionary<string, string>(selectedPresets))
         {
             SelectedCategory = _category,
-            SelectedCombinationLabel = selected is null ? null : model.SpecKeys.Select(k => selected.Values.GetValueOrDefault(k, "")).ToArray(),
         });
     }
 

@@ -1,4 +1,4 @@
-using Mconfig.App.Resources;
+﻿using Mconfig.App.Resources;
 using Mconfig.Application.Presets.Queries;
 using Mconfig.Presentation.Combinations;
 using Mconfig.Presentation.Common;
@@ -7,9 +7,9 @@ namespace Mconfig.App.Views;
 
 /// <summary>
 /// 値の表（プリセット比較と値の編集）。プリセットの列順を保ち、組み合わせの割り当て先を見出しで強調する。
-/// 上端のバーに、どのカテゴリのどの組み合わせの値かを示す。セルの状態は色と文言の両方で区別する:
+/// 上端にカテゴリ名と表示対象の選択を置く。プリセット管理はメニューにまとめる。セルの状態は色と文言の両方で区別する:
 /// 未入力（淡い赤と「（未入力）」）、使用しない（灰色と「使用しない」）、未保存の変更（太字と「*」）、選択中のプリセットと違う値（淡い黄）。
-/// 比較対象は自動（関連優先）・任意選択・全件を切り替えられる。
+/// 初期表示は全プリセット。「表示するプリセット」から表示対象を選べる。
 /// セルの確定と Ctrl+V の矩形貼り付けは Presenter へ知らせるだけで、表示は Presenter が結果に応じて描き直す。
 /// セルの入力中に届いた表示は、入力を捨てないよう入力が終わるまで保留する。
 /// </summary>
@@ -20,21 +20,15 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
     private static Color UnusedBack => UiAppearance.Unused;
     private static Color MissingBack => UiAppearance.Missing;
 
-    private readonly Label _caption = new() { AutoSize = true, Font = UiAppearance.HeadingFont, Margin = new Padding(4, 4, 8, 2) };
-    private readonly Label _captionDetail = new() { AutoSize = true, ForeColor = UiAppearance.Muted, Margin = new Padding(4, 0, 8, 4) };
-    private readonly Button _hide = new() { AutoSize = true, Anchor = AnchorStyles.Right };
+    private readonly Label _caption = new() { AutoSize = true, Font = UiAppearance.SectionHeadingFont, Margin = new Padding(0, 0, 8, 2) };
+    private readonly Button _hide = new() { AutoSize = true, Anchor = AnchorStyles.Right, Margin = new Padding(6, 0, 0, 0) };
     private readonly Label _legendDiff = Legend(DiffBack);
-    private readonly Label _legendUnsaved = Legend(SystemColors.Window);
-    private readonly Label _legendMissing = Legend(MissingBack);
-    private readonly Label _legendUnused = Legend(UnusedBack);
-    private readonly ToolStripMenuItem _choose = new();
-    private readonly ToolStripMenuItem _showAll = new();
-    private readonly ToolStripMenuItem _automatic = new();
-    private readonly ToolStripDropDownButton _comparisonMode = new() { DisplayStyle = ToolStripItemDisplayStyle.Text };
-    private readonly Button _add = new() { AutoSize = true, Margin = new Padding(16, 3, 3, 3) };
-    private readonly Button _duplicate = new() { AutoSize = true };
-    private readonly Button _rename = new() { AutoSize = true };
-    private readonly Button _delete = new() { AutoSize = true };
+    private readonly Button _choose = new() { AutoSize = true, Margin = new Padding(16, 3, 3, 3) };
+    private readonly ToolStripDropDownButton _manage = new() { DisplayStyle = ToolStripItemDisplayStyle.Text, Margin = Padding.Empty, Padding = new Padding(3) };
+    private readonly ToolStripMenuItem _add = new();
+    private readonly ToolStripMenuItem _duplicate = new();
+    private readonly ToolStripMenuItem _rename = new();
+    private readonly ToolStripMenuItem _delete = new();
     private readonly Label _info = new() { Dock = DockStyle.Bottom, AutoSize = true, Padding = new Padding(4) };
     private readonly FlowLayoutPanel _selectionNotice = new() { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(8, 2, 8, 6), Visible = false };
     private readonly Label _selectionOutside = new() { AutoSize = true, Margin = new Padding(3, 7, 8, 3) };
@@ -54,6 +48,9 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         ClipboardCopyMode = DataGridViewClipboardCopyMode.Disable,
     };
 
+    private readonly Panel _body = new() { Dock = DockStyle.Fill };
+    private readonly TableLayoutPanel _captionBar = new() { Dock = DockStyle.Top, AutoSize = true };
+    private bool _contentHidden;
     private ComparisonDisplay? _shown;
     // 入力中に届いた最新の表示。入力が終わったら表示する
     private ComparisonDisplay? _pending;
@@ -66,45 +63,53 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
     {
         Dock = DockStyle.Fill;
         Font = UiAppearance.BodyFont;
-        BackColor = UiAppearance.Surface;
+        BackColor = SystemColors.Window;
         UiAppearance.ApplyGrid(_grid);
         // プリセット名と選択中の表示を二段にし、行の選択で見出しの高さを変えない。
         _grid.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True;
         _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-        _grid.ColumnHeadersHeight = LogicalToDeviceUnits(60);
-        foreach (Button button in new[] { _hide, _add, _duplicate, _rename, _delete, _includeSelected }) UiAppearance.ApplyButton(button);
-        // 上端のバー（上下の境界）: どのカテゴリの、どの組み合わせの値か。右端に「値を隠す」
-        TableLayoutPanel caption = new() { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2, Padding = new Padding(4, 8, 4, 4) };
-        caption.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        caption.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        caption.Controls.Add(_caption, 0, 0);
-        caption.Controls.Add(_captionDetail, 0, 1);
-        caption.Controls.Add(_hide, 1, 0);
-        caption.SetRowSpan(_hide, 2);
-        ToolStrip comparisonTools = new() { Dock = DockStyle.None, AutoSize = true, GripStyle = ToolStripGripStyle.Hidden, Font = UiAppearance.BodyFont, Renderer = UiAppearance.Renderer(), Margin = new Padding(16, 5, 8, 3) };
-        _comparisonMode.DropDownItems.AddRange([_automatic, _showAll, _choose]);
-        comparisonTools.Items.Add(_comparisonMode);
-        FlowLayoutPanel bar = new() { Dock = DockStyle.Top, AutoSize = true, WrapContents = true, Padding = new Padding(8, 4, 8, 8) };
-        bar.Controls.AddRange([_add, _duplicate, _rename, _delete, comparisonTools, _legendDiff, _legendUnsaved, _legendMissing, _legendUnused]);
-        _add.Margin = new Padding(3);
-        _legendDiff.Margin = new Padding(24, 7, 3, 3);
+        _grid.ColumnHeadersHeight = LogicalToDeviceUnits(44);
+        foreach (Button button in new[] { _hide, _includeSelected, _choose }) UiAppearance.ApplyButton(button);
+        // 標準のラベルでカテゴリ名を示す。右端に「値を隠す」。
+        TableLayoutPanel caption = _captionBar;
+        UiAppearance.ArrangeSectionHeader(caption, [UiAppearance.SectionTitle(_caption)], [_hide]);
+        caption.BackColor = SystemColors.Window;
+        FlowLayoutPanel bar = new() { Dock = DockStyle.Fill, AutoSize = true, WrapContents = true, Margin = Padding.Empty };
+        _choose.Margin = new Padding(0, 0, 6, 0);
+        ToolStrip management = new()
+        {
+            Dock = DockStyle.None, GripStyle = ToolStripGripStyle.Hidden, AutoSize = true,
+            Font = UiAppearance.BodyFont, BackColor = SystemColors.Window,
+            Renderer = UiAppearance.Renderer(), Padding = Padding.Empty, Margin = Padding.Empty,
+        };
+        _manage.DropDownItems.AddRange([_add, _duplicate, _rename, new ToolStripSeparator(), _delete]);
+        management.Items.Add(_manage);
+        bar.Controls.AddRange([_choose, management]);
+        TableLayoutPanel toolbar = new() { Dock = DockStyle.Top, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, ColumnCount = 2, RowCount = 1, Padding = new Padding(8, 4, 8, 4) };
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        toolbar.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        toolbar.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        _legendDiff.Anchor = AnchorStyles.Right;
+        _legendDiff.Margin = new Padding(8, 2, 0, 2);
+        toolbar.Controls.Add(bar, 0, 0);
+        toolbar.Controls.Add(_legendDiff, 1, 0);
         Resize += (_, _) =>
         {
-            _caption.MaximumSize = _captionDetail.MaximumSize = new Size(Math.Max(160, ClientSize.Width - _hide.Width - 40), 0);
+            _caption.MaximumSize = new Size(Math.Max(160, ClientSize.Width - _hide.Width - 40), 0);
         };
+        // 選択中プリセットの見出しの色は列ごとに指定する。
+        _grid.EnableHeadersVisualStyles = false;
         _bold = new Font(_grid.Font, FontStyle.Bold);
-        _legendUnsaved.Font = _bold;
-        Controls.Add(_grid);
-        Controls.Add(_info);
+        _body.Controls.Add(_grid);
+        _body.Controls.Add(_info);
         _selectionNotice.Controls.AddRange([_selectionOutside, _includeSelected]);
-        Controls.Add(_selectionNotice);
-        Controls.Add(bar);
+        _body.Controls.Add(_selectionNotice);
+        _body.Controls.Add(toolbar);
+        Controls.Add(_body);
         Controls.Add(caption);
 
         _hide.Click += (_, _) => HideRequested?.Invoke(this, EventArgs.Empty);
         _choose.Click += (_, _) => ChoosePresets();
-        _showAll.Click += (_, _) => PresetsChosen?.Invoke(this, new PresetsChosenEventArgs(_shown?.AllPresets));
-        _automatic.Click += (_, _) => PresetsChosen?.Invoke(this, new PresetsChosenEventArgs(null));
         _includeSelected.Click += (_, _) =>
         {
             if (_shown is { SelectedPreset: { } selected } shown)
@@ -114,6 +119,13 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         _duplicate.Click += (_, _) => RequestOperation(PresetOperation.Duplicate);
         _rename.Click += (_, _) => RequestOperation(PresetOperation.Rename);
         _delete.Click += (_, _) => RequestOperation(PresetOperation.Delete);
+        _grid.CellMouseEnter += (_, e) =>
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < FixedColumns) return;
+            _grid[e.ColumnIndex, e.RowIndex].ToolTipText =
+                !_grid.ReadOnly && CellAt(e.RowIndex, e.ColumnIndex) is { State: ComparisonCellState.Editable }
+                    ? UiText.Get("Comparison_EditHint") : "";
+        };
         _grid.CellBeginEdit += OnCellBeginEdit;
         _grid.CellEndEdit += OnCellEndEdit;
         _grid.CellPainting += (_, e) =>
@@ -134,6 +146,15 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         ApplyTexts();
     }
 
+    public int CollapsedHeight => _captionBar.GetPreferredSize(new Size(ClientSize.Width, 0)).Height;
+
+    public void SetContentHidden(bool hidden)
+    {
+        _contentHidden = hidden;
+        _body.Visible = !hidden;
+        _hide.Text = UiText.Get(hidden ? "Values_Show" : "Values_Hide");
+    }
+
     /// <summary>「値を隠す（F6）」。</summary>
     public event EventHandler? HideRequested;
 
@@ -150,17 +171,12 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
     public void ApplyTexts()
     {
         _widthsDirty = true;
-        _hide.Text = UiText.Get("Values_Hide");
+        _hide.Text = UiText.Get(_contentHidden ? "Values_Show" : "Values_Hide");
         _legendDiff.Text = UiText.Get("Legend_Differs");
-        _legendUnsaved.Text = UiText.Get("Legend_Unsaved");
-        _legendMissing.Text = UiText.Get("Legend_Missing");
-        _legendUnused.Text = UiText.Get("Legend_Unused");
         _selectionOutside.Text = UiText.Get("Comparison_SelectionOutside");
         _includeSelected.Text = UiText.Get("Comparison_IncludeSelected");
         _choose.Text = UiText.Get("Comparison_Choose");
-        _showAll.Text = UiText.Get("Comparison_ShowAll");
-        _automatic.Text = UiText.Get("Comparison_Automatic");
-        _comparisonMode.Text = UiText.Format("Comparison_Mode", UiText.Get("Comparison_Automatic"));
+        _manage.Text = UiText.Get("Preset_Manage");
         _add.Text = UiText.Get("Preset_Add");
         _duplicate.Text = UiText.Get("Preset_Duplicate");
         _rename.Text = UiText.Get("Preset_Rename");
@@ -222,17 +238,8 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
                 _grid.Columns.Clear();
             }
             _grid.ReadOnly = !comparison.Editable;
-            _choose.Enabled = _showAll.Enabled = comparison.Available;
-            _automatic.Enabled = comparison.ManualSelection;
-            _comparisonMode.Enabled = comparison.Available;
-            _automatic.Checked = !comparison.ManualSelection;
-            _showAll.Checked = comparison.ManualSelection && comparison.Columns.Count == comparison.AllPresets.Count;
-            _choose.Checked = comparison.ManualSelection && !_showAll.Checked;
-            _comparisonMode.Text = UiText.Format("Comparison_Mode", UiText.Get(_automatic.Checked ? "Comparison_Automatic" : _showAll.Checked ? "Comparison_ShowAll" : "Comparison_SelectedPresets"));
+            _choose.Enabled = comparison.Available;
             _caption.Text = UiText.Format("Values_Caption", comparison.CategoryLabel);
-            _captionDetail.Text = comparison.SelectedCombination is { } combination
-                ? UiText.Format("Values_Selection", string.Join(" / ", combination), comparison.SelectedPreset ?? UiText.Get("Values_NoPreset"))
-                : UiText.Get("Values_NoSelection");
             _selectionNotice.Visible = comparison.Available && comparison.SelectedPreset is { } selected &&
                 comparison.AllPresets.Contains(selected) && !comparison.Columns.Any(c => c.AssignedToSelection);
             if (!comparison.Available)
@@ -316,6 +323,21 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
                 // 初回・比較対象・表示名の変更時だけ、見えている範囲からまとめて測る。
                 // 常時自動調整には戻さず、選択変更・単セル編集では利用者が調整した幅を維持する。
                 _grid.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.DisplayedCells);
+                // ペインが閉じている初回でも、項目名の列は実データから測る。
+                // これらはスキーマの行だけで、組み合わせの大量件数は対象にしない。
+                for (int i = 0; i < FixedColumns; i++)
+                {
+                    IEnumerable<string> texts = i switch
+                    {
+                        0 => comparison.Rows.Select(r => r.GroupLabel),
+                        1 => comparison.Rows.Select(r => r.RowLabel),
+                        _ => comparison.Rows.Select(r => r.Unit is null ? r.ColumnLabel : $"{r.ColumnLabel} [{r.Unit}]"),
+                    };
+                    int textWidth = texts.Append(_grid.Columns[i].HeaderText)
+                        .Max(text => TextRenderer.MeasureText(text, _grid.Font).Width);
+                    _grid.Columns[i].Width = Math.Max(_grid.Columns[i].Width,
+                        textWidth + _grid.DefaultCellStyle.Padding.Horizontal + LogicalToDeviceUnits(8));
+                }
                 // 後からどの列が選択されても、太字の名前と「選択中」が二段に収まる幅を確保する。
                 for (int i = 0; i < comparison.Columns.Count; i++)
                 {
@@ -327,11 +349,9 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
                 _widthsDirty = false;
             }
 
-            _info.Text = comparison.ManualSelection
+            _info.Text = comparison.Columns.Count < comparison.AllPresets.Count
                 ? UiText.Format("Comparison_Manual", comparison.Columns.Count, comparison.AllPresets.Count)
-                : comparison.Limited
-                    ? UiText.Format("Comparison_Limited", comparison.Columns.Count, comparison.AllPresets.Count)
-                    : UiText.Format("Comparison_All", comparison.AllPresets.Count);
+                : UiText.Format("Comparison_All", comparison.AllPresets.Count);
         }
         finally
         {
@@ -364,21 +384,19 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
             MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.OK;
 
     /// <summary>
-    /// 共有プリセットを編集する前の確認。使う組み合わせの一覧で、選んでいるものと
-    /// ほかに変わるものを区別し、一部だけ変えたいときの案内を示す。既定のボタンはキャンセル。
+    /// 共有プリセットを編集する前に使用先の組み合わせを確認する。既定のボタンはキャンセル。
     /// </summary>
     public SharedEditAnswer ConfirmSharedEdit(SharedEditPrompt prompt)
     {
         string presets = string.Join(UiText.Get("SharedEdit_Separator"), prompt.Presets);
         using Form dialog = Dialogs.Create(UiText.Get("SharedEdit_Title"));
-        TableLayoutPanel layout = Dialogs.Layout(6);
+        TableLayoutPanel layout = Dialogs.Layout(4);
         Label heading = new()
         {
             Text = UiText.Format("SharedEdit_Heading", presets),
             AutoSize = true, MaximumSize = new Size(560, 0), ForeColor = Color.FromArgb(0, 51, 153),
             Font = new Font(Font.FontFamily, Font.Size * 1.15f), Margin = new Padding(0, 0, 0, 4),
         };
-        Label body = new() { Text = UiText.Format("SharedEdit_Body", presets), AutoSize = true, MaximumSize = new Size(560, 0), Margin = new Padding(0, 0, 0, 8) };
         bool multiple = prompt.Presets.Count > 1;
         ListView list = new TableListView()
         {
@@ -388,35 +406,22 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         UiAppearance.ApplyList(list);
         if (multiple) list.Columns.Add(UiText.Get("SharedEdit_ColPreset"), 110);
         foreach (string label in prompt.SpecLabels) list.Columns.Add(label, 90);
-        list.Columns.Add("", 160);
         foreach (SharedUsageRow row in prompt.Rows.OrderByDescending(r => r.Selected))
         {
-            IEnumerable<string> cells = (multiple ? new[] { row.Preset } : []).Concat(row.Values)
-                .Append(UiText.Get(row.Selected ? "SharedEdit_Selected" : "SharedEdit_AlsoChanges"));
+            IEnumerable<string> cells = (multiple ? new[] { row.Preset } : []).Concat(row.Values);
             ListViewItem item = new(cells.ToArray());
             if (!row.Selected) item.BackColor = Color.FromArgb(255, 244, 206);
             list.Items.Add(item);
         }
         if (prompt.Truncated)
             list.Items.Add(new ListViewItem(UiText.Get("SharedEdit_Truncated")) { ForeColor = SystemColors.GrayText });
-        Label guide = new() { Text = UiText.Get("SharedEdit_Guide"), AutoSize = true, MaximumSize = new Size(560, 0), ForeColor = SystemColors.GrayText, Margin = new Padding(0, 0, 0, 4) };
         Label question = new() { Text = UiText.Format("SharedEdit_Question", presets), AutoSize = true, MaximumSize = new Size(560, 0), Margin = new Padding(0, 0, 0, 10) };
-        CheckBox skip = new()
-        {
-            Text = UiText.Format("SharedEdit_Skip", presets),
-            AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(0, 6, 24, 0),
-        };
         Button cancel = new() { Text = UiText.Get("Button_Cancel"), AutoSize = true, DialogResult = DialogResult.Cancel };
         Button proceed = new() { Text = UiText.Get("SharedEdit_Proceed"), AutoSize = true, DialogResult = DialogResult.Yes };
-        TableLayoutPanel footer = new() { AutoSize = true, ColumnCount = 2, Dock = DockStyle.Fill, Margin = new Padding(0) };
-        footer.Controls.Add(skip, 0, 0);
-        footer.Controls.Add(Dialogs.Buttons(cancel, proceed), 1, 0);
         layout.Controls.Add(heading, 0, 0);
-        layout.Controls.Add(body, 0, 1);
-        layout.Controls.Add(list, 0, 2);
-        layout.Controls.Add(guide, 0, 3);
-        layout.Controls.Add(question, 0, 4);
-        layout.Controls.Add(footer, 0, 5);
+        layout.Controls.Add(list, 0, 1);
+        layout.Controls.Add(question, 0, 2);
+        layout.Controls.Add(Dialogs.Buttons(cancel, proceed), 0, 3);
         dialog.Controls.Add(layout);
         // 既定はキャンセル（Enter でも変更しない）
         dialog.AcceptButton = cancel;
@@ -424,7 +429,7 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
         dialog.Shown += (_, _) => cancel.Focus();
         bool proceeded = dialog.ShowDialog(this) == DialogResult.Yes;
         heading.Font.Dispose();
-        return new SharedEditAnswer(proceeded, proceeded && skip.Checked);
+        return new SharedEditAnswer(proceeded);
     }
 
     public void ShowEditFeedback(EditFeedback feedback) =>
@@ -460,8 +465,9 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
     {
         AutoSize = true,
         BackColor = back,
-        BorderStyle = BorderStyle.FixedSingle,
+        BorderStyle = BorderStyle.None,
         Padding = new Padding(4, 1, 4, 1),
+        TabStop = false,
         Margin = new Padding(6, 7, 3, 3),
     };
 
@@ -556,6 +562,7 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
     private void UpdateButtons()
     {
         bool editable = _shown is { Available: true, Editable: true };
+        _manage.Enabled = editable;
         _add.Enabled = editable;
         _duplicate.Enabled = _rename.Enabled = _delete.Enabled = editable && CurrentPreset() is not null;
     }

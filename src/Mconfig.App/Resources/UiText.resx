@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -10,14 +10,11 @@
   <data name="Menu_Japanese" xml:space="preserve"><value>日本語</value></data>
   <data name="Menu_English" xml:space="preserve"><value>English</value></data>
   <data name="Filter_All" xml:space="preserve"><value>全て</value></data>
-  <data name="Combination_Count" xml:space="preserve"><value>{0} / {1} 件</value></data>
+  <data name="Combination_Count" xml:space="preserve"><value>全{1}件中{0}件</value></data>
   <data name="Outcome_Disabled" xml:space="preserve"><value>無効</value></data>
   <data name="Outcome_Unassigned" xml:space="preserve"><value>未割当</value></data>
   <data name="Outcome_Unavailable" xml:space="preserve"><value>評価できません（データに問題があります）</value></data>
-  <data name="Comparison_Choose" xml:space="preserve"><value>プリセットを選択...</value></data>
-  <data name="Comparison_ShowAll" xml:space="preserve"><value>すべて</value></data>
-  <data name="Comparison_Automatic" xml:space="preserve"><value>関連するもの</value></data>
-  <data name="Comparison_Limited" xml:space="preserve"><value>全 {1} 件のうち {0} 件を表示しています。行の選択では表示対象は変わりません。</value></data>
+  <data name="Comparison_Choose" xml:space="preserve"><value>表示するプリセット...</value></data>
   <data name="Comparison_Manual" xml:space="preserve"><value>選んだ {0} 件を表示しています（全 {1} 件）。</value></data>
   <data name="Comparison_All" xml:space="preserve"><value>全 {0} 件を表示しています。</value></data>
   <data name="Comparison_ColGroup" xml:space="preserve"><value>グループ</value></data>
@@ -28,7 +25,7 @@
   <data name="Comparison_Uneditable" xml:space="preserve"><value>（編集できない値）</value></data>
   <data name="Comparison_Unavailable" xml:space="preserve"><value>このカテゴリはデータに問題があるため表示できません。データ管理の整合性チェックで内容を確認してください。</value></data>
   <data name="Comparison_Selected" xml:space="preserve"><value>{0}（選択中の組み合わせ）</value></data>
-  <data name="Comparison_ChooseTitle" xml:space="preserve"><value>比較するプリセット</value></data>
+  <data name="Comparison_ChooseTitle" xml:space="preserve"><value>表示するプリセット</value></data>
   <data name="Button_OK" xml:space="preserve"><value>OK</value></data>
   <data name="Button_Cancel" xml:space="preserve"><value>キャンセル</value></data>
   <data name="Status_Unsaved" xml:space="preserve"><value>未保存の変更があります</value></data>
@@ -79,6 +76,7 @@
   <data name="Severity_Error" xml:space="preserve"><value>エラー</value></data>
   <data name="Severity_Warning" xml:space="preserve"><value>警告</value></data>
   <data name="Preset_Add" xml:space="preserve"><value>プリセットを追加</value></data>
+  <data name="Preset_Manage" xml:space="preserve"><value>プリセットの管理</value></data>
   <data name="Preset_Duplicate" xml:space="preserve"><value>複製</value></data>
   <data name="Preset_Rename" xml:space="preserve"><value>名前を変更</value></data>
   <data name="Preset_Delete" xml:space="preserve"><value>削除</value></data>
@@ -268,30 +266,22 @@
   <data name="Title_Unsaved" xml:space="preserve"><value>（未保存の変更あり）</value></data>
   <data name="Filter_Clear" xml:space="preserve"><value>絞り込みを解除</value></data>
   <data name="Filter_ClearAll" xml:space="preserve"><value>すべて解除</value></data>
-  <data name="Filter_Expand" xml:space="preserve"><value>絞り込み ▾</value></data>
-  <data name="Filter_Collapse" xml:space="preserve"><value>絞り込み ▴</value></data>
-  <data name="Filter_Close" xml:space="preserve"><value>閉じる</value></data>
+  <data name="Filter_Heading" xml:space="preserve"><value>絞り込み</value></data>
+  <data name="Combination_Heading" xml:space="preserve"><value>組み合わせ</value></data>
+  <data name="Filter_Expand" xml:space="preserve"><value>条件を表示</value></data>
+  <data name="Filter_Collapse" xml:space="preserve"><value>条件を隠す</value></data>
   <data name="Filter_None" xml:space="preserve"><value>絞り込みなし</value></data>
   <data name="Filter_SelectedCount" xml:space="preserve"><value>{0}条件を指定</value></data>
-  <data name="Filter_Remove" xml:space="preserve"><value>{0}: {1} の絞り込みを解除</value></data>
-  <data name="Combination_ConditionsGroup" xml:space="preserve"><value>組み合わせの条件</value></data>
-  <data name="Combination_ResultsGroup" xml:space="preserve"><value>割り当て結果</value></data>
   <data name="Combination_GoToAssignment" xml:space="preserve"><value>割り当てルールへ移動</value></data>
   <data name="Assignment_RuleNotFound" xml:space="preserve"><value>この組み合わせに一致する割り当てルールはありません。</value></data>
   <data name="Combination_Hint" xml:space="preserve"><value>セルを選ぶと、そのカテゴリの値を下に表示します</value></data>
   <data name="Values_Show" xml:space="preserve"><value>値を表示 (F6)</value></data>
   <data name="Values_Hide" xml:space="preserve"><value>値を隠す (F6)</value></data>
   <data name="Values_Caption" xml:space="preserve"><value>{0} の値</value></data>
-  <data name="Values_Selection" xml:space="preserve"><value>選んだ組み合わせ: {0} → {1}</value></data>
-  <data name="Values_NoPreset" xml:space="preserve"><value>（割り当てなし）</value></data>
-  <data name="Values_NoSelection" xml:space="preserve"><value>組み合わせを選んでいません（上の表でセルを選んでください）</value></data>
-  <data name="Legend_Differs" xml:space="preserve"><value>選択中のプリセットと異なる値</value></data>
+  <data name="Legend_Differs" xml:space="preserve"><value>選択中のプリセットとの差分</value></data>
   <data name="Comparison_SelectedMarker" xml:space="preserve"><value>選択中</value></data>
   <data name="Comparison_SelectionOutside" xml:space="preserve"><value>選択中のプリセットは表示対象外です。</value></data>
   <data name="Comparison_IncludeSelected" xml:space="preserve"><value>表示対象に追加</value></data>
-  <data name="Legend_Unsaved" xml:space="preserve"><value>未保存 *</value></data>
-  <data name="Legend_Missing" xml:space="preserve"><value>（未入力）</value></data>
-  <data name="Legend_Unused" xml:space="preserve"><value>使用しない</value></data>
   <data name="CellInfo_Value" xml:space="preserve"><value>{0}: {1}</value></data>
   <data name="CellInfo_Changed" xml:space="preserve"><value>{0}: {1} → {2}（未保存）</value></data>
   <data name="Status_UnsavedCount" xml:space="preserve"><value>未保存の変更: {0} 件</value></data>
@@ -301,14 +291,9 @@
   <data name="Status_UnassignedTip" xml:space="preserve"><value>どの割り当てにも一致しない組み合わせとカテゴリの件数です。クリックすると割り当て画面を開きます。</value></data>
   <data name="SharedEdit_Title" xml:space="preserve"><value>値の変更</value></data>
   <data name="SharedEdit_Separator" xml:space="preserve"><value>、</value></data>
-  <data name="SharedEdit_Heading" xml:space="preserve"><value>{0} は、ほかの組み合わせでも使われています。</value></data>
-  <data name="SharedEdit_Body" xml:space="preserve"><value>{0} の値を変えると、次の組み合わせの値もすべて変わります。</value></data>
+  <data name="SharedEdit_Heading" xml:space="preserve"><value>{0} は、次の組み合わせで使われています。</value></data>
   <data name="SharedEdit_ColPreset" xml:space="preserve"><value>プリセット</value></data>
-  <data name="SharedEdit_Selected" xml:space="preserve"><value>選んでいる組み合わせ</value></data>
-  <data name="SharedEdit_AlsoChanges" xml:space="preserve"><value>これも変わります</value></data>
-  <data name="SharedEdit_Guide" xml:space="preserve"><value>この組み合わせだけ別の値にしたい場合は、キャンセルして「割り当て」でプリセットを分けてください。</value></data>
   <data name="SharedEdit_Question" xml:space="preserve"><value>{0} を変更しますか？</value></data>
-  <data name="SharedEdit_Skip" xml:space="preserve"><value>一時保存するまで {0} について確認しない</value></data>
   <data name="SharedEdit_Proceed" xml:space="preserve"><value>変更する(&amp;Y)</value></data>
   <data name="Assignment_Categories" xml:space="preserve"><value>カテゴリ</value></data>
   <data name="Assignment_CategoryLegend" xml:space="preserve"><value>* は未保存の変更があるカテゴリ</value></data>
@@ -388,8 +373,6 @@
   <data name="Tool_Discard" xml:space="preserve"><value>未保存の変更を破棄...</value></data>
   <data name="Status_NoErrors" xml:space="preserve"><value>✓ エラーなし</value></data>
   <data name="Combination_Title" xml:space="preserve"><value>組み合わせ</value></data>
-  <data name="Comparison_Mode" xml:space="preserve"><value>比較: {0}</value></data>
-  <data name="Comparison_SelectedPresets" xml:space="preserve"><value>選択したプリセット</value></data>
   <data name="History_CurrentChanges" xml:space="preserve"><value>現在の変更</value></data>
   <data name="History_CurrentChangeCount" xml:space="preserve"><value>履歴からの変更 {0} 件</value></data>
   <data name="History_ValidationPending" xml:space="preserve"><value>検証結果は未確定です。検証結果を確認してください。</value></data>
@@ -403,5 +386,6 @@
   <data name="Output_PendingTitle" xml:space="preserve"><value>未完了の出力</value></data>
   <data name="Output_NoPending" xml:space="preserve"><value>未完了の出力はありません。</value></data>
   <data name="Output_PendingNeedsAttention" xml:space="preserve"><value>再開できる出力はありません。下の復旧情報を確認してください。</value></data>
+  <data name="Comparison_EditHint" xml:space="preserve"><value>ダブルクリックまたはF2で編集できます。</value></data>
 </root>
 

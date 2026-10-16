@@ -1,4 +1,4 @@
-using System.Text.Json.Nodes;
+﻿using System.Text.Json.Nodes;
 using Mconfig.Application.Presets.Queries;
 using Mconfig.Application.Workspaces;
 using Mconfig.Application.Workspaces.Editing;
@@ -52,24 +52,44 @@ public sealed class PresetComparisonSelectionTests
     }
 
     [Fact]
-    public async Task AutomaticSubsetIsStableUntilExplicitResetOrCategoryChange()
+    public async Task DefaultsToAllEvenAboveTenAndManualSelectionResetsOnCategoryChange()
     {
         using Fixture f = await Fixture.CreateAsync(extraPresets: 6);
         f.Select("CPU・基本構成");
         string[] order = f.View.Display!.Columns.Select(c => c.Name).ToArray();
-        Assert.Equal(PresetComparisonPresenter.AutomaticLimit, order.Length);
-        string hidden = f.View.Display.AllPresets.Last();
-        f.Select(hidden);
+        Assert.Equal(13, order.Length);
+        Assert.Equal(f.View.Display.AllPresets, order);
+        string last = f.View.Display.AllPresets.Last();
+        f.Select(last);
         Assert.Equal(order, f.View.Display.Columns.Select(c => c.Name));
-        Assert.Equal(hidden, f.View.Display.SelectedPreset);
-        Assert.DoesNotContain(f.View.Display.Columns, c => c.AssignedToSelection);
+        Assert.True(f.View.Display.Columns.Last().AssignedToSelection);
         await f.Presenter.RefreshAsync();
         Assert.Equal(order, f.View.Display.Columns.Select(c => c.Name));
+        f.View.Choose([order[0], order[1]]);
+        f.Select(last);
+        Assert.Equal(order.Take(2), f.View.Display.Columns.Select(c => c.Name));
         f.View.Choose(null);
-        Assert.Contains(f.View.Display.Columns, c => c.Name == hidden && c.AssignedToSelection);
+        Assert.Equal(order, f.View.Display.Columns.Select(c => c.Name));
+        f.View.Choose([order[0]]);
         await f.Presenter.SelectAsync("memory");
         Assert.Equal("memory", f.View.Display.Category);
+        Assert.Equal(f.View.Display.AllPresets, f.View.Display.Columns.Select(c => c.Name));
         Assert.DoesNotContain(f.View.Display.Columns, c => c.Name.StartsWith("CPU"));
+    }
+
+    [Fact]
+    public async Task SharedPresetPromptsOnEveryEditAndCanStillBeCancelled()
+    {
+        using Fixture f = await Fixture.CreateAsync();
+        await f.Presenter.SelectAsync("cpu");
+        string preset = f.View.Display!.AllPresets[0];
+        f.View.AllowSharedEdit = true;
+        Assert.False(f.View.StartEdit(preset).Cancel);
+        Assert.False(f.View.StartEdit(preset).Cancel);
+        Assert.Equal(2, f.View.SharedEditConfirmations);
+        f.View.AllowSharedEdit = false;
+        Assert.True(f.View.StartEdit(preset).Cancel);
+        Assert.Equal(3, f.View.SharedEditConfirmations);
     }
 
     private sealed class Fixture(string root, WorkspaceLock editLock, EditSession session) : IDisposable
@@ -109,8 +129,7 @@ public sealed class PresetComparisonSelectionTests
         }
         public void Select(string? preset) => Presenter.OnContextChanged(this, new CombinationContext(
             Session.Status.Version, [new("cpu", "CPU")], null,
-            preset is null ? new Dictionary<string, string>() : new() { ["cpu"] = preset },
-            new Dictionary<string, IReadOnlyList<string>>()) { SelectedCategory = "cpu" });
+            preset is null ? new Dictionary<string, string>() : new() { ["cpu"] = preset }) { SelectedCategory = "cpu" });
         public void Dispose()
         {
             Presenter.Dispose();
@@ -133,7 +152,19 @@ public sealed class PresetComparisonSelectionTests
         public void ShowComparison(ComparisonDisplay comparison) => Display = comparison;
         public string? AskPresetName(PresetNamePrompt prompt) => null;
         public bool ConfirmDeletePreset(string preset) => false;
-        public SharedEditAnswer ConfirmSharedEdit(SharedEditPrompt prompt) => new(false, false);
+        public bool AllowSharedEdit { get; set; }
+        public int SharedEditConfirmations { get; private set; }
+        public CellEditStartingEventArgs StartEdit(string preset)
+        {
+            CellEditStartingEventArgs args = new(0, preset);
+            CellEditStarting?.Invoke(this, args);
+            return args;
+        }
+        public SharedEditAnswer ConfirmSharedEdit(SharedEditPrompt prompt)
+        {
+            SharedEditConfirmations++;
+            return new(AllowSharedEdit);
+        }
         public void ShowEditFeedback(EditFeedback feedback) { }
         public void ShowPasteOutOfRange(PasteOutOfRange range) { }
     }

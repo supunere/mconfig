@@ -111,14 +111,13 @@ internal sealed class ExportView : UserControl, IExportView
         TableLayoutPanel card = new()
         {
             ColumnCount = 1, RowCount = 3, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            BackColor = UiAppearance.Surface, Padding = new Padding(16), Margin = new Padding(6, 8, 6, 12),
+            BackColor = SystemColors.Control, Padding = new Padding(8), Margin = new Padding(3, 4, 3, 6),
             CellBorderStyle = TableLayoutPanelCellBorderStyle.None,
         };
         card.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        title.Margin = new Padding(0, 0, 0, 8);
-        description.Margin = new Padding(0, 0, 0, 16);
+        title.Margin = new Padding(0, 0, 0, 4);
+        description.Margin = new Padding(0, 0, 0, 8);
         action.Margin = new Padding(0);
-        card.Paint += (_, e) => ControlPaint.DrawBorder(e.Graphics, card.ClientRectangle, UiAppearance.Border, ButtonBorderStyle.Solid);
         card.Controls.Add(title, 0, 0);
         card.Controls.Add(description, 0, 1);
         card.Controls.Add(action, 0, 2);

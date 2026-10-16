@@ -1,4 +1,4 @@
-using Mconfig.Application.Assignments.Commands;
+﻿using Mconfig.Application.Assignments.Commands;
 using Mconfig.Application.Assignments.Queries;
 using Mconfig.Application.Workspaces.Editing;
 using Mconfig.Application.Workspaces.Queries;
@@ -103,7 +103,6 @@ public interface IAssignmentView
     event EventHandler? RowAdded;
     event EventHandler<AssignmentRowEventArgs>? RowRemoved;
     event EventHandler<AssignmentMovedEventArgs>? RowMoved;
-    event EventHandler<ChangeScopeEventArgs>? ChangeScopeChanged;
 
     void ShowCategories(IReadOnlyList<CategoryItemDisplay> categories, string? selected);
     void ShowAssignments(AssignmentTableDisplay table);
@@ -125,7 +124,6 @@ public sealed class AssignmentPresenter : QueryPresenter<AssignmentListReadModel
     private string? _category;
     private int? _selectedRow;
     private IReadOnlyDictionary<string, string>? _navigationCombination;
-    private bool _showAllChanges;
     private readonly TimeSpan _changeDelay;
 
     public AssignmentPresenter(IAssignmentView view, EditSession session, IQueryRunner runner, IUiDispatcher ui, DisplayLanguage language,
@@ -143,7 +141,6 @@ public sealed class AssignmentPresenter : QueryPresenter<AssignmentListReadModel
         _view.RowAdded += OnRowAdded;
         _view.RowRemoved += OnRowRemoved;
         _view.RowMoved += OnRowMoved;
-        _view.ChangeScopeChanged += OnChangeScopeChanged;
     }
 
     public Task SelectAsync(string? category)
@@ -224,8 +221,8 @@ public sealed class AssignmentPresenter : QueryPresenter<AssignmentListReadModel
             CategoryLabel = LabelOf(model, model.Category),
             RuleNavigation = navigating,
             RuleNotFound = ruleNotFound,
-            Changes = new ChangeRows(model.Changes, columns, _showAllChanges),
-            ShowAllChanges = _showAllChanges,
+            Changes = new ChangeRows(model.Changes, columns, false),
+            ShowAllChanges = false,
             ChangedCount = model.Changes.Count(c => c.Changed),
             Totals = new AssignmentTotalsDisplay(model.Changes.Count,
                 model.Totals.Assigned, model.Totals.Disabled, model.Totals.Unassigned, model.Totals.UnreachableRows),
@@ -265,13 +262,6 @@ public sealed class AssignmentPresenter : QueryPresenter<AssignmentListReadModel
         AssignmentOutcomeKind.Disabled => new OutcomeDisplay(OutcomeDisplayKind.Disabled, null),
         _ => new OutcomeDisplay(OutcomeDisplayKind.Unassigned, null),
     };
-
-    // 表示範囲の切り替えは手元のリードモデルから表示し直すだけ（版もデータも変わらない）
-    private void OnChangeScopeChanged(object? sender, ChangeScopeEventArgs e)
-    {
-        _showAllChanges = e.ShowAll;
-        if (Current is not null) Render(Current);
-    }
 
     private void OnCategorySelected(object? sender, CategorySelectedEventArgs e) => _ = SelectAsync(e.Category);
 
@@ -340,6 +330,5 @@ public sealed class AssignmentPresenter : QueryPresenter<AssignmentListReadModel
         _view.RowAdded -= OnRowAdded;
         _view.RowRemoved -= OnRowRemoved;
         _view.RowMoved -= OnRowMoved;
-        _view.ChangeScopeChanged -= OnChangeScopeChanged;
     }
 }
