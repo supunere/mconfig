@@ -78,7 +78,7 @@ public sealed class ZipReleaseArchive : IReleaseArchive
                 // 同じ操作IDの二度目の実行は、記録した入力で続きを行う
                 if (ExportJournal.Load(Layout, request.OperationId) is { } existing) return Continue(existing);
 
-                (ReleasePlan plan, IReadOnlyDictionary<string, byte[]> files) = Plan(request.Kind, request.Stamp, request.CompareTo);
+                (ReleasePlan plan, IReadOnlyDictionary<string, byte[]> files) = Plan(request.Kind, request.Stamp, request.CompareTo, preparedRevision: request.PreparedRevision);
                 cancellationToken.ThrowIfCancellationRequested();
 
                 DateTimeOffset createdAt = _clock();
@@ -137,7 +137,7 @@ public sealed class ZipReleaseArchive : IReleaseArchive
     /// テスト版で edited を渡すと、計画（差分・未確定差分・指紋）はその内容から作る（プレビュー用。Files はディスクの W のままで使わない）。
     /// </summary>
     private (ReleasePlan Plan, IReadOnlyDictionary<string, byte[]> Files) Plan(
-        ReleaseKind kind, WorkspaceStamp stamp, ReleaseComparison? compareTo, WorkspaceContent? edited = null)
+        ReleaseKind kind, WorkspaceStamp stamp, ReleaseComparison? compareTo, WorkspaceContent? edited = null, RevisionId? preparedRevision = null)
     {
         IReadOnlyList<string> missing = Layout.DiagnoseMissingData();
         if (missing.Count > 0) throw new WorkspaceUnreadableException("The workspace data is incomplete.", missing);
@@ -145,6 +145,13 @@ public sealed class ZipReleaseArchive : IReleaseArchive
         string? head = _repository.ReadHead();
         if (disk.Stamp(head) != stamp)
             throw new WorkspaceConflictException("The workspace files or HEAD changed after they were loaded.");
+
+        // 発行ではまだHEADを進めず、準備済みコミットからZIPを作成する。
+        if (preparedRevision is not null)
+        {
+            if (kind != ReleaseKind.Release) throw new ArgumentException("Only publication can use a prepared revision.");
+            head = preparedRevision.Value;
+        }
 
         IReadOnlyDictionary<string, byte[]> files;
         WorkspaceContent content;
@@ -395,7 +402,7 @@ public sealed class ZipReleaseArchive : IReleaseArchive
 
     /// <summary>タグが指すコミット（注釈付きタグは参照先をたどる）。タグがなければ null。</summary>
     private string? TagTarget(string name) =>
-        _repository.State is DataRepositoryState.NotInitialized or DataRepositoryState.Empty
+        _repository.State is DataRepositoryState.NotInitialized
             ? null
             : _repository.WithRepository(repo => repo.Tags[name] is { } tag ? (tag.PeeledTarget as LibGit2Sharp.Commit)?.Sha ?? "" : null);
 

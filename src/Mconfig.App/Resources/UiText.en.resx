@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -30,8 +30,8 @@
   <data name="Button_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Status_Unsaved" xml:space="preserve"><value>Unsaved changes</value></data>
   <data name="Status_Saved" xml:space="preserve"><value>Saved</value></data>
-  <data name="Status_Uncommitted" xml:space="preserve"><value>Not recorded in history</value></data>
-  <data name="Status_Committed" xml:space="preserve"><value>Recorded in history</value></data>
+  <data name="Status_Uncommitted" xml:space="preserve"><value>Unpublished changes</value></data>
+  <data name="Status_Committed" xml:space="preserve"><value>Matches published settings</value></data>
   <data name="Status_ReadOnly" xml:space="preserve"><value>Read-only (another app is editing)</value></data>
   <data name="Status_RecoveryPending" xml:space="preserve"><value>Recovery pending (a save stopped midway)</value></data>
   <data name="Status_Saving" xml:space="preserve"><value>Saving...</value></data>
@@ -57,18 +57,18 @@ Choose an existing workspace, or create one from the data bundled with the app.<
 
 {0}</value></data>
   <data name="Startup_ReadOnlyNotice" xml:space="preserve"><value>Another app is editing this workspace, so it opens read-only.</value></data>
-  <data name="Startup_InvalidDataReadOnly" xml:space="preserve"><value>The loaded data has structural or reference errors (conditions not in the spec, categories without a schema, and so on), so the workspace opens read-only. Run "Validate" in "Save and History" to see the locations, then quit the app and fix the source data.</value></data>
+  <data name="Startup_InvalidDataReadOnly" xml:space="preserve"><value>The loaded data has structural or reference errors (conditions not in the spec, categories without a schema, and so on), so the workspace opens read-only. Run "Validate" in "Review changes" to see the locations, then quit the app and fix the source data.</value></data>
   <data name="Recovery_Title" xml:space="preserve"><value>Restore the workspace</value></data>
   <data name="Recovery_Message" xml:space="preserve"><value>The workspace cannot be opened because its data is damaged.
 
 {0}
 
 The following backups and past committed versions were verified to load and validate. Choose one to restore. A backup restores the settings file only; a committed version restores the settings, spec and schemas together.</value></data>
-  <data name="Recovery_Note" xml:space="preserve"><value>The current files that are replaced are moved to the recovery folder, not deleted. The restored content opens as uncommitted changes; review it, then save it to the history with a reason.</value></data>
+  <data name="Recovery_Note" xml:space="preserve"><value>Current files are retained in the recovery folder. Review the restored settings before publishing.</value></data>
   <data name="Recovery_Restore" xml:space="preserve"><value>Restore and open</value></data>
   <data name="Recovery_FromCommit" xml:space="preserve"><value>{0}  commit {1} (all files)  {2}</value></data>
   <data name="Recovery_FromFile" xml:space="preserve"><value>{0}  settings backup {1}</value></data>
-  <data name="Recovery_Restored" xml:space="preserve"><value>The workspace was restored. Review the content, then save it to the history with a reason.</value></data>
+  <data name="Recovery_Restored" xml:space="preserve"><value>Restored. Review the settings before publishing.</value></data>
   <data name="Menu_File" xml:space="preserve"><value>&amp;File</value></data>
   <data name="Menu_SaveDraft" xml:space="preserve"><value>&amp;Save</value></data>
   <data name="Menu_Exit" xml:space="preserve"><value>E&amp;xit</value></data>
@@ -126,8 +126,8 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Data_SaveDraft" xml:space="preserve"><value>Save</value></data>
   <data name="Data_Discard" xml:space="preserve"><value>Discard Edits</value></data>
   <data name="Data_DiscardConfirm" xml:space="preserve"><value>Discard the edits that are not saved and go back to the last saved version?</value></data>
-  <data name="Data_Reason" xml:space="preserve"><value>Reason:</value></data>
-  <data name="Data_Commit" xml:space="preserve"><value>Record in History</value></data>
+  <data name="Data_Reason" xml:space="preserve"><value>Publication reason:</value></data>
+  <data name="Data_Commit" xml:space="preserve"><value>Publish</value></data>
   <data name="Data_ValidationGroup" xml:space="preserve"><value>Validation</value></data>
   <data name="Data_CopyIssues" xml:space="preserve"><value>Copy Diagnostics</value></data>
   <data name="Data_ColSeverity" xml:space="preserve"><value>Severity</value></data>
@@ -135,8 +135,8 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Data_NoIssues" xml:space="preserve"><value>No problems found.</value></data>
   <data name="Data_IssueSummary" xml:space="preserve"><value>{0} errors, {1} warnings</value></data>
   <data name="Data_ValidationStale" xml:space="preserve"><value>(The content changed after validation. Validate again.)</value></data>
-  <data name="Data_HistoryGroup" xml:space="preserve"><value>History</value></data>
-  <data name="Data_ColWhen" xml:space="preserve"><value>Date</value></data>
+  <data name="Data_HistoryGroup" xml:space="preserve"><value>Publication history</value></data>
+  <data name="Data_ColWhen" xml:space="preserve"><value>Published at</value></data>
   <data name="Data_ColRevision" xml:space="preserve"><value>Commit ID</value></data>
   <data name="Data_RevisionId" xml:space="preserve"><value>Commit ID: {0}</value></data>
   <data name="Data_ColAuthor" xml:space="preserve"><value>Author</value></data>
@@ -161,8 +161,8 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Confirm_Proceed" xml:space="preserve"><value>Continue anyway?</value></data>
   <data name="Restore_Title" xml:space="preserve"><value>Restore Version</value></data>
   <data name="Restore_Message" xml:space="preserve"><value>Restore the version from {0} by {1}: "{2}". {3} differences from the current content.</value></data>
-  <data name="Restore_Choice_Restore" xml:space="preserve"><value>After restoring, the saved content becomes this version. To record it in the history, enter a reason and record in history afterwards.</value></data>
-  <data name="Restore_Choice_RestoreByDiscarding" xml:space="preserve"><value>Some changes are not recorded in history. Restoring discards them (the current files are kept in the recovery area). Record in history after restoring to record it.</value></data>
+  <data name="Restore_Choice_Restore" xml:space="preserve"><value>Restoring replaces the saved settings with this version. Use Publish to distribute the restored settings.</value></data>
+  <data name="Restore_Choice_RestoreByDiscarding" xml:space="preserve"><value>Unpublished changes will be replaced. The current files will be retained for recovery.</value></data>
   <data name="Restore_Choice_SaveOrDiscardFirst" xml:space="preserve"><value>You have edits that are not saved, so restoring is not possible now. Save or discard the edits first.</value></data>
   <data name="Restore_Choice_Unavailable" xml:space="preserve"><value>This version cannot be restored (its content has problems, or the workspace is saving, read-only, or waiting for recovery).</value></data>
   <data name="Export_Run" xml:space="preserve"><value>Export</value></data>
@@ -190,10 +190,10 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Result_Committed" xml:space="preserve"><value>Recorded in history.</value></data>
   <data name="Result_DraftSaved" xml:space="preserve"><value>Saved (not yet recorded in history).</value></data>
   <data name="Result_Discarded" xml:space="preserve"><value>Discarded the edits and went back to the last saved version.</value></data>
-  <data name="Result_Restored" xml:space="preserve"><value>Restored the version. To record it in the history, enter a reason and record in history.</value></data>
+  <data name="Result_Restored" xml:space="preserve"><value>Version restored. Review the settings and publish them when ready.</value></data>
   <data name="Result_Exported" xml:space="preserve"><value>Exported: {0}</value></data>
   <data name="Result_NoChanges" xml:space="preserve"><value>There are no changes.</value></data>
-  <data name="Result_NoChangesCommit" xml:space="preserve"><value>There are no changes to record in history.</value></data>
+  <data name="Result_NoChangesCommit" xml:space="preserve"><value>No changes since last publication.</value></data>
   <data name="Result_ValidationFailed" xml:space="preserve"><value>{0} failed because the content has errors. Check the validation results in Data Management.</value></data>
   <data name="Result_NotConfirmed" xml:space="preserve"><value>{0} was not carried out.</value></data>
   <data name="Result_Conflict" xml:space="preserve"><value>{0} failed because the content or files changed. Check the latest state and try again.</value></data>
@@ -201,7 +201,7 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Result_Canceled" xml:space="preserve"><value>{0} was canceled. Nothing was changed.</value></data>
   <data name="Result_RecoveryPending" xml:space="preserve"><value>{0} stopped before its result could be confirmed. Restart the application to recover.</value></data>
   <data name="Result_TechnicalFailure" xml:space="preserve"><value>{0} failed because of a problem such as writing a file. Copy the details and contact your administrator.</value></data>
-  <data name="Result_DraftSavedButNotCommitted" xml:space="preserve"><value>The changes were saved, but recording in history did not complete. Record in history again.</value></data>
+  <data name="Result_DraftSavedButNotCommitted" xml:space="preserve"><value>Settings are saved, but publication did not complete. Resolve the problem and click Publish again.</value></data>
   <data name="Result_DraftSavedOnly" xml:space="preserve"><value>The changes were saved.</value></data>
   <data name="Issue_InvalidStructure" xml:space="preserve"><value>The presets or assignments have an invalid structure and cannot be edited. Consider restoring from a backup.</value></data>
   <data name="Issue_InvalidPresetName" xml:space="preserve"><value>The preset name "{0}" is empty or used twice. Rename it.</value></data>
@@ -254,12 +254,12 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Change_OtherDataChanged" xml:space="preserve"><value>Other data changed</value></data>
   <data name="Screen_Combinations" xml:space="preserve"><value>Combinations and Values</value></data>
   <data name="Screen_Assignments" xml:space="preserve"><value>Assignments</value></data>
-  <data name="Screen_History" xml:space="preserve"><value>Save and History</value></data>
+  <data name="Screen_History" xml:space="preserve"><value>History</value></data>
   <data name="Screen_Export" xml:space="preserve"><value>Export</value></data>
   <data name="ScreenMenu_Combinations" xml:space="preserve"><value>&amp;1 Combinations and Values</value></data>
   <data name="ScreenMenu_Assignments" xml:space="preserve"><value>&amp;2 Assignments</value></data>
-  <data name="ScreenMenu_History" xml:space="preserve"><value>&amp;3 Save and History</value></data>
-  <data name="ScreenMenu_Export" xml:space="preserve"><value>&amp;4 Export</value></data>
+  <data name="ScreenMenu_History" xml:space="preserve"><value>&amp;4 History</value></data>
+  <data name="ScreenMenu_Export" xml:space="preserve"><value>&amp;5 Export</value></data>
   <data name="Menu_HideValues" xml:space="preserve"><value>&amp;Hide Values</value></data>
   <data name="Tool_SaveDraft" xml:space="preserve"><value>Save</value></data>
   <data name="Tool_Validate" xml:space="preserve"><value>Validate</value></data>
@@ -287,7 +287,7 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Status_UnsavedCount" xml:space="preserve"><value>Unsaved changes: {0}</value></data>
   <data name="Status_Errors" xml:space="preserve"><value>Errors: {0}</value></data>
   <data name="Status_Unassigned" xml:space="preserve"><value>Unassigned: {0}</value></data>
-  <data name="Status_ErrorsTip" xml:space="preserve"><value>Errors that prevent recording in history. Click to show the validation results.</value></data>
+  <data name="Status_ErrorsTip" xml:space="preserve"><value>Errors that prevent publication. Click to view validation results.</value></data>
   <data name="Status_UnassignedTip" xml:space="preserve"><value>Combinations and categories that match no assignment. Click to open Assignments.</value></data>
   <data name="SharedEdit_Title" xml:space="preserve"><value>Change Values</value></data>
   <data name="SharedEdit_Separator" xml:space="preserve"><value>, </value></data>
@@ -327,17 +327,17 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Data_GoToIssue" xml:space="preserve"><value>Go to Location</value></data>
   <data name="Data_GoToIssueHint" xml:space="preserve"><value>Select an item and choose Go to Location (or double-click) to open the screen where you can fix it.</value></data>
   <data name="Data_ValidationGroupCount" xml:space="preserve"><value>Validation (errors: {0}, warnings: {1})</value></data>
-  <data name="Data_UncommittedGroup" xml:space="preserve"><value>Changes since the last history record</value></data>
-  <data name="Data_UncommittedGroupCount" xml:space="preserve"><value>Changes since the last history record ({0})</value></data>
-  <data name="Data_UncommittedUnavailable" xml:space="preserve"><value>Could not read the last history record</value></data>
+  <data name="Data_UncommittedGroup" xml:space="preserve"><value>Changes since last publication</value></data>
+  <data name="Data_UncommittedGroupCount" xml:space="preserve"><value>Changes since last publication ({0})</value></data>
+  <data name="Data_UncommittedUnavailable" xml:space="preserve"><value>The previous publication could not be read.</value></data>
   <data name="Data_Author" xml:space="preserve"><value>Author: {0} (Windows user name)</value></data>
   <data name="Data_CommitBlocked" xml:space="preserve"><value>Cannot save: there are {0} errors. Go to each location from the validation results and fix it.</value></data>
-  <data name="Data_NothingToCommit" xml:space="preserve"><value>There are no changes to record in history.</value></data>
+  <data name="Data_NothingToCommit" xml:space="preserve"><value>No changes since last publication.</value></data>
   <data name="Data_RevisionChanges" xml:space="preserve"><value>Changes in the selected version</value></data>
   <data name="Data_CompareWithCurrent" xml:space="preserve"><value>Compare with Current...</value></data>
   <data name="Data_CompareWithCurrentTitle" xml:space="preserve"><value>Compare with Current</value></data>
   <data name="Data_CompareWithCurrentMessage" xml:space="preserve"><value>Differences from the version of {0} ({1}, "{2}") to the current content: {3}</value></data>
-  <data name="Tool_Commit" xml:space="preserve"><value>Record in History...</value></data>
+  <data name="Tool_Commit" xml:space="preserve"><value>Publish…</value></data>
   <data name="Combination_Large" xml:space="preserve"><value>There are {0} combinations (more than 50,000). The list computes only the visible rows, but validation and assignment totals take time. Filtering makes them faster.</value></data>
   <data name="Combination_LargeTruncated" xml:space="preserve"><value>There are {0} combinations; only the first {1} can be shown. Please filter the list.</value></data>
   <data name="Status_UnassignedNotCounted" xml:space="preserve"><value>Unassigned: check by validating</value></data>
@@ -350,7 +350,7 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Progress_Starting" xml:space="preserve"><value>{0}: preparing…</value></data>
   <data name="Progress_Checking" xml:space="preserve"><value>{0}: checking combinations {1} / {2} ({3}%)</value></data>
   <data name="Progress_Cancel" xml:space="preserve"><value>Cancel</value></data>
-  <data name="Data_ValidationIncomplete" xml:space="preserve"><value>Validation incomplete (canceled). These results cannot be used to record in history or export. Choose Validate again.</value></data>
+  <data name="Data_ValidationIncomplete" xml:space="preserve"><value>Validation is incomplete. Run validation again.</value></data>
   <data name="Data_ExportUncovered" xml:space="preserve"><value>Export Unassigned to CSV...</value></data>
   <data name="Csv_Title" xml:space="preserve"><value>Export Unassigned Combinations</value></data>
   <data name="Csv_Filter" xml:space="preserve"><value>CSV files (*.csv)|*.csv</value></data>
@@ -359,7 +359,7 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Csv_Canceled" xml:space="preserve"><value>The export was canceled. No existing file was changed.</value></data>
   <data name="Csv_Failed" xml:space="preserve"><value>Could not write the file: {0}</value></data>
   <data name="Error_Unexpected" xml:space="preserve"><value>An unexpected error occurred. Your work may not be lost. Try Save; if the problem continues, restart the application. Details are in the log in the workspace's logs folder.</value></data>
-  <data name="Reason_RestoreNeedsNoPendingChanges" xml:space="preserve"><value>There are unsaved or uncommitted changes. Save or discard them first, or choose to discard the uncommitted changes and restore.</value></data>
+  <data name="Reason_RestoreNeedsNoPendingChanges" xml:space="preserve"><value>There are unsaved or unpublished changes. Save first or discard the changes before restoring.</value></data>
   <data name="Reason_ReleaseNeedsCommittedHead" xml:space="preserve"><value>There are changes that are not in the history, or no version has been recorded in history yet. Record in history first.</value></data>
   <data name="Reason_ChangedAfterPreview" xml:space="preserve"><value>The content changed after the preview. Check the preview again.</value></data>
   <data name="Reason_FilesChangedOutside" xml:space="preserve"><value>The workspace files were changed outside this application. Restart the application to load them again.</value></data>
@@ -368,7 +368,7 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Export_PendingProblem_ListUnavailable" xml:space="preserve"><value>The interrupted export list could not be read. There may be unfinished exports that are not shown. Check the recovery folder location and access permissions, then reopen the export screen.</value></data>
   <data name="Export_OperationId" xml:space="preserve"><value>Operation ID: {0}</value></data>
   <data name="Tool_Save" xml:space="preserve"><value>Save</value></data>
-  <data name="Tool_SaveTip" xml:space="preserve"><value>Save (Ctrl+S). To record it in history, choose Record in history from the menu.</value></data>
+  <data name="Tool_SaveTip" xml:space="preserve"><value>Save (Ctrl+S). When the settings are ready, use Publish to create a distribution ZIP.</value></data>
   <data name="Tool_Changes" xml:space="preserve"><value>● {0} changes</value></data>
   <data name="Tool_Discard" xml:space="preserve"><value>Discard unsaved changes...</value></data>
   <data name="Status_NoErrors" xml:space="preserve"><value>✓ No errors</value></data>
@@ -390,5 +390,16 @@ Save before exiting? If you choose Don't Save, the {0} changes will be lost.</va
   <data name="Assignment_RulesCaption" xml:space="preserve"><value>{0} assignment rules</value></data>
   <data name="Assignment_PresetsCaption" xml:space="preserve"><value>{0} preset management</value></data>
   <data name="Assignment_PriorityHint" xml:space="preserve"><value>Higher rows take priority.</value></data>
+  <data name="Screen_Changes" xml:space="preserve"><value>Review changes</value></data>
+  <data name="ScreenMenu_Changes" xml:space="preserve"><value>&amp;3 Review changes</value></data>
+  <data name="Data_CommitIssuesBlocked" xml:space="preserve"><value>Resolve all errors and warnings before publishing.</value></data>
+  <data name="Screen_Publish" xml:space="preserve"><value>Publish</value></data>
+  <data name="ScreenMenu_Publish" xml:space="preserve"><value>Publish (&amp;3)</value></data>
+  <data name="Publish_Title" xml:space="preserve"><value>Publish settings</value></data>
+  <data name="Publish_Description" xml:space="preserve"><value>Create a distribution ZIP containing settings, definitions, schemas, and a change report. Successful publication is recorded in history automatically.</value></data>
+  <data name="Publish_Destination" xml:space="preserve"><value>Destination: {0}</value></data>
+  <data name="Publish_Succeeded" xml:space="preserve"><value>Settings published and recorded in history.
+ZIP file: {0}</value></data>
+  <data name="Operation_Publish" xml:space="preserve"><value>Publish settings</value></data>
 </root>
 

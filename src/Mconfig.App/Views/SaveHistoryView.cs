@@ -1,4 +1,4 @@
-﻿using Mconfig.App.Resources;
+using Mconfig.App.Resources;
 using Mconfig.Application.History;
 using Mconfig.Application.Ports;
 using Mconfig.Application.Releases.Queries;
@@ -10,16 +10,15 @@ using static Mconfig.App.Views.DataViewParts;
 namespace Mconfig.App.Views;
 
 /// <summary>
-/// 保存と履歴の画面。左に現在の状態と履歴に保存、変更内容、検証結果を縦に並べ、
-/// 右に履歴（選んだ版の変更・現在との違い・この版に戻す）を置く。
-/// 出力（テスト版・リリース版・中断した出力の再開）は <see cref="ExportView"/> で、ツールバーの「出力」で開く。
+/// 発行と履歴の2ページ。発行理由・変更内容・検証結果・発行操作はこのControlに置く。
+/// 過去の版と選択した版の変更はHistoryPageに置き、同じPresenterで状態と操作を管理する。
+/// 発行処理はZIP作成に成功した設定を自動で履歴へ記録する。
 /// 通常の画面には保存・履歴・版などの業務用語だけを使う。
 /// </summary>
 internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
 {
-    private readonly Label _changeCount = new() { AutoSize = true, Font = UiAppearance.HeadingFont, Margin = new Padding(3, 4, 12, 4) };
-    private readonly Label _validationState = new() { AutoSize = true, Margin = new Padding(3, 4, 3, 4) };
-    private readonly GroupBox _validationGroup = new() { Dock = DockStyle.Fill, Padding = new Padding(8) };
+    private readonly Label _validationTitle = new() { AutoSize = true };
+    private readonly TableLayoutPanel _validationGroup = new() { Dock = DockStyle.Fill };
     private readonly Label _validationSummary = new() { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(0, 0, 0, 4) };
     private readonly ListView _issues = CreateList();
     private readonly Button _validate = new() { AutoSize = true };
@@ -29,22 +28,27 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
 
     // 全件検証の進捗と中止。出力の画面にも同じものを出す
     private readonly ProgressStrip _historyProgress = new();
+    private readonly ProgressStrip _revisionProgress = new();
+    public Panel HistoryPage { get; } = new() { Dock = DockStyle.Fill, Visible = false };
     private ProgressDisplay? _progressShown;
 
-    private readonly GroupBox _uncommittedGroup = new() { Dock = DockStyle.Fill, Padding = new Padding(8) };
+    private readonly Label _uncommittedTitle = new() { AutoSize = true };
+    private readonly TableLayoutPanel _uncommittedGroup = new() { Dock = DockStyle.Fill };
     private readonly ListView _uncommitted = CreateList();
 
-    private readonly GroupBox _saveGroup = new() { Dock = DockStyle.Fill, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, Padding = new Padding(8) };
-    private readonly Label _state = new() { AutoSize = true, Margin = new Padding(12, 8, 3, 3), ForeColor = SystemColors.GrayText };
-    private readonly Button _saveDraft = new() { AutoSize = true };
-    private readonly Button _discard = new() { AutoSize = true };
+    private readonly Label _saveTitle = new() { AutoSize = true };
+    private readonly TableLayoutPanel _saveGroup = new() { Dock = DockStyle.Fill };
+    private readonly Label _publicationDescription = new() { AutoSize = true, Margin = new Padding(3, 4, 3, 0) };
+    private readonly Label _destination = new() { AutoSize = true, Margin = new Padding(3, 4, 3, 0), ForeColor = UiAppearance.Muted };
+    private string _publicationDirectory = "";
     private readonly Label _reasonLabel = new() { AutoSize = true, Margin = new Padding(3, 8, 3, 3) };
     private readonly TextBox _reason = new() { Dock = DockStyle.Top };
     private readonly Label _authorLabel = new() { AutoSize = true, Margin = new Padding(3, 8, 3, 3) };
     private readonly Label _blocked = new() { AutoSize = true, Margin = new Padding(3, 8, 3, 3), ForeColor = Color.FromArgb(196, 43, 28) };
     private readonly Button _commit = new() { AutoSize = true };
 
-    private readonly GroupBox _historyGroup = new() { Dock = DockStyle.Fill, Padding = new Padding(8) };
+    private readonly Label _historyTitle = new() { AutoSize = true };
+    private readonly TableLayoutPanel _historyGroup = new() { Dock = DockStyle.Fill };
     private readonly ListView _revisions = CreateList();
     private readonly Label _changesLabel = new() { AutoSize = true, Margin = new Padding(3, 8, 3, 3) };
     private readonly ListView _changes = CreateList();
@@ -66,10 +70,10 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         Dock = DockStyle.Fill;
         Font = UiAppearance.BodyFont;
         BackColor = UiAppearance.Background;
-        foreach (GroupBox group in new[] { _saveGroup, _uncommittedGroup, _validationGroup, _historyGroup }) UiAppearance.ApplyGroup(group);
-        foreach (Button button in new[] { _validate, _goToIssue, _copyIssues, _exportUncovered, _saveDraft, _discard, _reloadHistory, _moreHistory, _compare, _restore }) UiAppearance.ApplyButton(button);
+        HistoryPage.BackColor = UiAppearance.Background;
+        foreach (Button button in new[] { _validate, _goToIssue, _copyIssues, _exportUncovered, _reloadHistory, _moreHistory, _compare, _restore }) UiAppearance.ApplyButton(button);
         UiAppearance.ApplyPrimaryButton(_commit);
-        _state.ForeColor = _authorLabel.ForeColor = UiAppearance.Muted;
+        _authorLabel.ForeColor = UiAppearance.Muted;
         _reason.BorderStyle = BorderStyle.Fixed3D;
 
         // 左下: 検証結果
@@ -77,28 +81,31 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         _issues.Columns.Add("", 300);
         _issues.Columns.Add("", 420);
         FlowLayoutPanel issueButtons = Row(_validate, _goToIssue, _copyIssues, _exportUncovered);
-        issueButtons.Dock = DockStyle.Bottom;
-        _validationGroup.Controls.Add(_issues);
-        _validationGroup.Controls.Add(issueButtons);
-        _validationGroup.Controls.Add(_validationSummary);
+        issueButtons.Dock = DockStyle.Top;
+        Panel validationBody = new() { Dock = DockStyle.Fill, Padding = new Padding(8, 0, 8, 8) };
+        validationBody.Controls.Add(_issues);
+        validationBody.Controls.Add(_validationSummary);
+        validationBody.Controls.Add(issueButtons);
+        ArrangeSection(_validationGroup, _validationTitle, validationBody);
 
         // 左中: 前回の履歴保存からの変更
         AddChangeColumns(_uncommitted);
-        _uncommittedGroup.Controls.Add(_uncommitted);
+        Panel changesBody = new() { Dock = DockStyle.Fill, Padding = new Padding(8, 0, 8, 8) };
+        changesBody.Controls.Add(_uncommitted);
+        ArrangeSection(_uncommittedGroup, _uncommittedTitle, changesBody);
 
         // 左上: 現在の状態と履歴に保存。入力幅はペインに合わせ、狭い画面でも操作を隠さない。
-        TableLayoutPanel save = new() { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 1, RowCount = 7 };
+        TableLayoutPanel save = new() { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 1, RowCount = 6, Padding = new Padding(8, 0, 8, 8), Margin = Padding.Empty };
         save.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        save.Controls.Add(Row(_changeCount, _state), 0, 0);
-        save.Controls.Add(Row(_validationState), 0, 1);
+        save.Controls.Add(_publicationDescription, 0, 0);
+        save.Controls.Add(_destination, 0, 1);
         save.Controls.Add(_reasonLabel, 0, 2);
         save.Controls.Add(_reason, 0, 3);
         save.Controls.Add(Row(_authorLabel), 0, 4);
         save.Controls.Add(Row(_commit, _blocked), 0, 5);
-        save.Controls.Add(Row(_saveDraft, _discard), 0, 6);
-        _saveGroup.Controls.Add(save);
+        ArrangeSection(_saveGroup, _saveTitle, save, autoSize: true);
 
-        TableLayoutPanel left = new() { Dock = DockStyle.Top, ColumnCount = 1, RowCount = 3, Margin = new Padding(0) };
+        TableLayoutPanel left = new() { Dock = DockStyle.Top, ColumnCount = 1, RowCount = 3, Margin = Padding.Empty };
         left.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         left.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         left.RowStyles.Add(new RowStyle(SizeType.Percent, 55));
@@ -106,13 +113,13 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         left.Controls.Add(_saveGroup, 0, 0);
         left.Controls.Add(_uncommittedGroup, 0, 1);
         left.Controls.Add(_validationGroup, 0, 2);
-        Panel current = new() { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(0, 0, 8, 0) };
+        Panel current = new() { Dock = DockStyle.Fill, AutoScroll = true, Padding = Padding.Empty };
         current.Controls.Add(left);
         current.Resize += (_, _) =>
         {
             left.Height = Math.Max(LogicalToDeviceUnits(600), current.ClientSize.Height);
             int width = Math.Max(120, current.ClientSize.Width - 48);
-            foreach (Label label in new[] { _changeCount, _state, _validationState, _authorLabel, _blocked, _validationSummary })
+            foreach (Label label in new[] { _publicationDescription, _destination, _authorLabel, _blocked, _validationSummary })
                 label.MaximumSize = new Size(width, 0);
         };
 
@@ -123,35 +130,40 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         _revisions.Columns.Add("", 260);
         _revisions.Columns[0].DisplayIndex = 3;
         AddChangeColumns(_changes);
-        TableLayoutPanel history = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 5 };
-        history.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-        history.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        history.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        history.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
-        history.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        history.Controls.Add(_revisions, 0, 0);
-        history.Controls.Add(Row(_reloadHistory, _moreHistory), 0, 1);
-        history.Controls.Add(_changesLabel, 0, 2);
-        history.Controls.Add(_changes, 0, 3);
-        history.Controls.Add(Row(_compare, _restore), 0, 4);
-        _historyGroup.Controls.Add(history);
+        Panel revisionBody = new() { Dock = DockStyle.Fill, Padding = new Padding(8, 0, 8, 8) };
+        FlowLayoutPanel historyButtons = Row(_reloadHistory, _moreHistory);
+        historyButtons.Dock = DockStyle.Top;
+        revisionBody.Controls.Add(_revisions);
+        revisionBody.Controls.Add(historyButtons);
+        ArrangeSection(_historyGroup, _historyTitle, revisionBody);
 
-        SplitContainer split = new() { Dock = DockStyle.Fill, SplitterWidth = 6 };
-        split.Panel1.Controls.Add(current);
-        split.Panel2.Controls.Add(_historyGroup);
-        Load += (_, _) => split.SplitterDistance = Math.Max(split.Panel1MinSize, split.Width * 11 / 20);
-        Controls.Add(split);
+        Panel selectedBody = new() { Dock = DockStyle.Fill, Padding = new Padding(8, 0, 8, 8) };
+        FlowLayoutPanel revisionButtons = Row(_compare, _restore);
+        revisionButtons.Dock = DockStyle.Top;
+        selectedBody.Controls.Add(_changes);
+        selectedBody.Controls.Add(revisionButtons);
+        TableLayoutPanel selectedSection = new() { Dock = DockStyle.Fill };
+        ArrangeSection(selectedSection, _changesLabel, selectedBody);
+        TableLayoutPanel history = new() { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty };
+        history.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        history.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+        history.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+        history.Controls.Add(_historyGroup, 0, 0);
+        history.Controls.Add(selectedSection, 0, 1);
+
+        Controls.Add(current);
         Controls.Add(_historyProgress);
-
+        HistoryPage.Controls.Add(history);
+        HistoryPage.Controls.Add(_revisionProgress);
         _historyProgress.CancelClicked += (_, _) => CancelRequested?.Invoke(this, EventArgs.Empty);
+        _revisionProgress.CancelClicked += (_, _) => CancelRequested?.Invoke(this, EventArgs.Empty);
+
         _exportUncovered.Click += (_, _) => ExportUncoveredRequested?.Invoke(this, EventArgs.Empty);
 
         _validate.Click += (_, _) => ValidateRequested?.Invoke(this, EventArgs.Empty);
         _goToIssue.Click += (_, _) => GoToIssue();
         _issues.DoubleClick += (_, _) => GoToIssue();
         _issues.SelectedIndexChanged += (_, _) => UpdateButtons();
-        _saveDraft.Click += (_, _) => SaveDraftRequested?.Invoke(this, EventArgs.Empty);
-        _discard.Click += (_, _) => RequestDiscard();
         _commit.Click += (_, _) => CommitRequested?.Invoke(this, new CommitRequestedEventArgs(_reason.Text));
         _copyIssues.Click += (_, _) => CopyIssues();
         _reloadHistory.Click += (_, _) => HistoryRequested?.Invoke(this, EventArgs.Empty);
@@ -172,14 +184,41 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         ApplyTexts();
     }
 
-    /// <summary>「履歴に保存...」（ツールバー）: 変更理由の入力へ移る。</summary>
+    // 他の業務ページと同じ標準Panel・見出し部品を使い、領域間は背景色の隙間で区切る。
+    private static void ArrangeSection(TableLayoutPanel section, Label title, Control body, bool autoSize = false)
+    {
+        section.BackColor = UiAppearance.Surface;
+        section.Margin = new Padding(0, 0, 0, 6);
+        section.ColumnCount = 1;
+        section.RowCount = 2;
+        section.AutoSize = autoSize;
+        section.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        section.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        section.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        section.RowStyles.Add(new RowStyle(autoSize ? SizeType.AutoSize : SizeType.Percent, 100));
+        TableLayoutPanel header = new() { Dock = DockStyle.Top, AutoSize = true, Margin = Padding.Empty };
+        UiAppearance.ArrangeSectionHeader(header, [UiAppearance.SectionTitle(title)], []);
+        header.BackColor = UiAppearance.Surface;
+        body.Margin = Padding.Empty;
+        section.Controls.Add(header, 0, 0);
+        section.Controls.Add(body, 0, 1);
+    }
+
+    /// <summary>「発行…」（ツールバー）: 発行理由の入力へ移る。</summary>
     public void FocusReason()
     {
         if (IsHandleCreated) BeginInvoke(() => _reason.Focus());
     }
 
+    public void SetPublicationDirectory(string path)
+    {
+        _publicationDirectory = path;
+        _destination.Text = UiText.Format("Publish_Destination", path);
+    }
+
+    public void ReloadHistory() => HistoryRequested?.Invoke(this, EventArgs.Empty);
+
     public event EventHandler? ValidateRequested;
-    public event EventHandler? SaveDraftRequested;
     public event EventHandler? DiscardRequested;
     public event EventHandler<CommitRequestedEventArgs>? CommitRequested;
     public event EventHandler? HistoryRequested;
@@ -193,21 +232,21 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
 
     public void ApplyTexts()
     {
-        _saveGroup.Text = UiText.Get("History_CurrentChanges");
+        _saveTitle.Text = UiText.Get("Publish_Title");
+        _publicationDescription.Text = UiText.Get("Publish_Description");
+        SetPublicationDirectory(_publicationDirectory);
         _validate.Text = UiText.Get("Data_Validate");
         _goToIssue.Text = UiText.Get("Data_GoToIssue");
-        _saveDraft.Text = UiText.Get("Data_SaveDraft");
-        _discard.Text = UiText.Get("Data_Discard");
         _reasonLabel.Text = UiText.Get("Data_Reason");
         _commit.Text = UiText.Get("Data_Commit");
-        _validationGroup.Text = UiText.Get("Data_ValidationGroup");
+        _validationTitle.Text = UiText.Get("Data_ValidationGroup");
         _copyIssues.Text = UiText.Get("Data_CopyIssues");
         _exportUncovered.Text = UiText.Get("Data_ExportUncovered");
         if (_progressShown is not null) ShowProgress(_progressShown);
         _issues.Columns[0].Text = UiText.Get("Data_ColSeverity");
         _issues.Columns[1].Text = UiText.Get("Data_ColLocation");
         _issues.Columns[2].Text = UiText.Get("Data_ColIssue");
-        _historyGroup.Text = UiText.Get("Data_HistoryGroup");
+        _historyTitle.Text = UiText.Get("Data_HistoryGroup");
         _revisions.Columns[0].Text = UiText.Get("Data_ColRevision");
         _revisions.Columns[1].Text = UiText.Get("Data_ColWhen");
         _revisions.Columns[2].Text = UiText.Get("Data_ColAuthor");
@@ -221,7 +260,6 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         _restore.Text = UiText.Get("Data_Restore");
         if (_stateShown is not null) ShowState(_stateShown);
         if (_validationShown is not null) ShowValidation(_validationShown);
-        else _validationState.Text = UiText.Get("History_ValidationPending");
         ShowUncommittedChanges(_uncommittedShown);
         ShowHistory(_history, _hasMore);
         ShowRevisionChanges(_changesShown.Revision, _changesShown.Changes);
@@ -231,15 +269,6 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
     {
         _stateShown = state;
         _authorLabel.Text = UiText.Format("Data_Author", state.Author);
-        _blocked.Text = state.CommitErrors is > 0 && state.Editable
-            ? UiText.Format("Data_CommitBlocked", state.CommitErrors.Value)
-            : !state.Unsaved && !state.Uncommitted ? UiText.Get("Data_NothingToCommit") : "";
-        _blocked.ForeColor = state.CommitErrors is > 0 && !SystemInformation.HighContrast ? Color.FromArgb(196, 43, 28) : UiAppearance.Muted;
-        _state.Text = state.RecoveryPending ? UiText.Get("Status_RecoveryPending")
-            : state.ReadOnly ? UiText.Get("Status_ReadOnly")
-            : state.Busy ? UiText.Get("Status_Saving")
-            : string.Join(" / ", UiText.Get(state.Unsaved ? "Status_Unsaved" : "Status_Saved"),
-                UiText.Get(state.Uncommitted ? "Status_Uncommitted" : "Status_Committed"));
         UpdateButtons();
     }
 
@@ -258,19 +287,12 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         }
         _issues.EndUpdate();
         // 途中で中止した検証は「検証未完了」とし、件数も結果も示さない
-        _validationGroup.Text = validation.Incomplete
-            ? UiText.Get("Data_ValidationGroup")
-            : UiText.Format("Data_ValidationGroupCount", validation.Errors, validation.Warnings);
+        _validationTitle.Text = UiText.Get("Data_ValidationGroup");
         _validationSummary.ForeColor = validation.Incomplete ? Color.FromArgb(196, 43, 28) : SystemColors.ControlText;
         _validationSummary.Text = validation.Incomplete
             ? UiText.Get("Data_ValidationIncomplete")
             : (validation.Items.Count == 0 ? UiText.Get("Data_NoIssues") : UiText.Get("Data_GoToIssueHint"))
                 + (validation.Stale ? " " + UiText.Get("Data_ValidationStale") : "");
-        _validationState.Text = validation.Incomplete ? UiText.Get("History_ValidationPending")
-            : validation.Stale ? UiText.Get("History_ValidationStale")
-            : UiText.Format("History_ValidationSummary", validation.Errors, validation.Warnings);
-        _validationState.ForeColor = validation.Incomplete || validation.Stale || validation.Errors > 0
-            ? (SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(163, 37, 43)) : UiAppearance.Muted;
         UpdateButtons();
     }
 
@@ -278,6 +300,7 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
     {
         _progressShown = progress;
         _historyProgress.Show(progress);
+        _revisionProgress.Show(progress);
         UpdateButtons();
     }
 
@@ -308,9 +331,7 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
     public void ShowUncommittedChanges(IReadOnlyList<ChangeDisplay>? changes)
     {
         _uncommittedShown = changes;
-        _changeCount.Text = changes is null ? UiText.Get("Data_UncommittedUnavailable")
-            : UiText.Format("History_CurrentChangeCount", changes.Count);
-        _uncommittedGroup.Text = changes is null
+        _uncommittedTitle.Text = changes is null
             ? UiText.Get("Data_UncommittedGroup")
             : UiText.Format("Data_UncommittedGroupCount", changes.Count);
         FillChanges(_uncommitted, changes ?? []);
@@ -380,7 +401,7 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
 
     public void ShowOperationResult(OperationDisplay result)
     {
-        if (result.Operation == DataOperation.Commit && result.Status == Mconfig.Application.Workspaces.OperationStatus.Succeeded) _reason.Clear();
+        if (result.Operation is DataOperation.Commit or DataOperation.Publish && result.Status == Mconfig.Application.Workspaces.OperationStatus.Succeeded) _reason.Clear();
         Feedback.ShowOperation(FindForm(), result);
     }
 
@@ -454,10 +475,12 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         bool running = _progressShown is not null;
         _validate.Enabled = !busy && !running;
         _exportUncovered.Enabled = !running && _validationShown is { Incomplete: false, HasUncovered: true };
-        _saveDraft.Enabled = editable && _stateShown!.Unsaved;
-        _discard.Enabled = editable && _stateShown!.Unsaved;
-        // エラーがある間は押せない（理由は横に示す）
-        _commit.Enabled = editable && (_stateShown!.Unsaved || _stateShown.Uncommitted) && _stateShown.CommitErrors is 0;
+        bool valid = _validationShown is { Incomplete: false, Stale: false, Errors: 0, Warnings: 0 };
+        _commit.Enabled = editable && !running && _stateShown is { Unsaved: false, Uncommitted: true, CommitErrors: 0 } && valid;
+        _blocked.Text = _stateShown is { Unsaved: false, Uncommitted: false } ? UiText.Get("Data_NothingToCommit")
+            : _validationShown is { Incomplete: false, Stale: false } validation && (validation.Errors > 0 || validation.Warnings > 0)
+                ? UiText.Get("Data_CommitIssuesBlocked")
+                : !valid ? UiText.Get("History_ValidationPending") : "";
         _moreHistory.Enabled = _hasMore;
         _restore.Enabled = editable && SelectedRevision() is not null;
         _compare.Enabled = SelectedRevision() is not null && !busy;

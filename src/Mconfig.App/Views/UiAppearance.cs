@@ -120,9 +120,6 @@ internal static class UiAppearance
         list.OwnerDraw = false;
     }
 
-    internal static void DrawTableBorder(Control table, Graphics graphics) =>
-        ControlPaint.DrawBorder3D(graphics, table.ClientRectangle, Border3DStyle.Sunken);
-
     public static void ApplyNavigationList(ListView list)
     {
         ApplyList(list);

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Globalization;
 using Mconfig.App.Resources;
 using Mconfig.Presentation.Common;
@@ -118,13 +118,13 @@ internal sealed class StatusStripView : StatusStrip, IWorkspaceStatusView
 }
 
 /// <summary>画面（ツールバーの切り替えボタンとメニュー「表示」の Ctrl+1〜4）。</summary>
-internal enum AppScreen { Combinations, Assignments, History, Export }
+internal enum AppScreen { Combinations, Assignments, Publish, History }
 
 /// <summary>
 /// メインフォーム。画面はツールバー左端の切り替えボタンとメニュー「表示」で切り替え、タブや左の画面メニューは使わない。
 /// 「組み合わせと値」は上下分割で、上が組み合わせの表、下が値の表。境界の位置と、値の表を隠しているか（F6）は利用者が変えられる。
 /// 画面の切り替えと終了では、未保存（E≠W）なら一時保存・保存しない・キャンセルを尋ね、終了時は未確定（W≠C）を知らせる。
-/// 「保存と履歴」を開くたびに検証し、「出力」は独立した画面にする。
+/// 「発行」を開くたびに検証し、ZIP作成に成功した設定は自動で履歴に残す。
 /// 表示言語はメニューで切り替え、表示名は選択言語 → ja → キーの順で解決する。
 /// </summary>
 internal sealed class MainForm : Form, ILeaveConfirmationView
@@ -173,7 +173,7 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         Comparison = new PresetComparisonView();
         Assignments = new AssignmentView { Visible = false };
         History = new SaveHistoryView { Visible = false };
-        Export = new ExportView { Visible = false };
+        History.SetPublicationDirectory(Path.Combine(workspacePath, "exports"));
         Status = new StatusStripView(workspacePath);
 
         _split.Panel1.Controls.Add(CombinationList);
@@ -187,7 +187,7 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         CombinationList.TableSpaceRequested += (_, _) => ApplySplitRatio();
         Load += (_, _) => ApplySplitRatio();
         _split.SizeChanged += (_, _) => ApplySplitRatio();
-        _host.Controls.AddRange([_split, Assignments, History, Export]);
+        _host.Controls.AddRange([_split, Assignments, History, History.HistoryPage]);
         Assignments.Dock = DockStyle.Fill;
 
         ToolStrip tools = new() { GripStyle = ToolStripGripStyle.Hidden, Padding = new Padding(2), Font = UiAppearance.BodyFont, BackColor = SystemColors.Control, Renderer = UiAppearance.Renderer() };
@@ -206,7 +206,7 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         }
         _saveButton.ButtonClick += (_, _) => RequestSave();
         _draftItem.Click += (_, _) => RequestSave();
-        _commitButton.Click += (_, _) => RequestScreen(AppScreen.History, History.FocusReason);
+        _commitButton.Click += (_, _) => RequestScreen(AppScreen.Publish, History.FocusReason);
         _discardItem.Click += (_, _) =>
         {
             CommitPendingEdits();
@@ -252,17 +252,15 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
     public PresetComparisonView Comparison { get; }
     public AssignmentView Assignments { get; }
     public SaveHistoryView History { get; }
-    public ExportView Export { get; }
     public StatusStripView Status { get; }
 
     /// <summary>一時保存（Ctrl+S とツールバー）。</summary>
     public event EventHandler? SaveRequested;
 
-    /// <summary>検証（保存と履歴の画面を開いたとき、ツールバー、ステータスバーのエラー件数）。</summary>
+    /// <summary>検証（変更の確認の画面を開いたとき、ツールバー、ステータスバーのエラー件数）。</summary>
     public event EventHandler? ValidateRequested;
 
     /// <summary>別画面から出力画面を開いた。復旧状態を読み直す。</summary>
-    public event EventHandler? ExportOpened;
 
     /// <summary>画面を開き（未保存の確認を経て）、開けたら then を実行する（検証結果の該当箇所へ移るときに使う）。</summary>
     internal void OpenScreen(AppScreen screen, Action? then = null) => RequestScreen(screen, then);
@@ -333,24 +331,24 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         BeginInvoke(() => SaveRequested?.Invoke(this, EventArgs.Empty));
     }
 
-    // 保存と履歴の画面を開けば検証する。すでに開いていれば検証し直す
+    // 変更の確認の画面を開けば検証する。すでに開いていれば検証し直す
     private void ShowErrors()
     {
-        if (_screen == AppScreen.History) ValidateRequested?.Invoke(this, EventArgs.Empty);
-        else RequestScreen(AppScreen.History);
+        if (_screen == AppScreen.Publish) ValidateRequested?.Invoke(this, EventArgs.Empty);
+        else RequestScreen(AppScreen.Publish);
     }
 
     private Control ViewOf(AppScreen screen) => screen switch
     {
         AppScreen.Combinations => _split,
         AppScreen.Assignments => Assignments,
-        AppScreen.History => History,
-        _ => Export,
+        AppScreen.Publish => History,
+        AppScreen.History => History.HistoryPage,
+        _ => throw new ArgumentOutOfRangeException(nameof(screen)),
     };
 
     // 未保存の確認は非同期（一時保存を待つ）なので、確認が済んでから切り替える。
     // 編集中のセルの確定（BeginInvoke で届く）より後に確認するため、確認も BeginInvoke で始める。
-    // 同じ画面の中の移動（保存と履歴 ↔ 出力）は確認しない
     private void RequestScreen(AppScreen target, Action? then = null)
     {
         if (_switching) return;
@@ -389,8 +387,8 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
             button.Checked = item.Checked = key == screen;
         _hideValuesMenu.Enabled = screen == AppScreen.Combinations;
         if (screen == AppScreen.Combinations) ApplySplitRatio();
-        if (screen == AppScreen.History && opened) ValidateRequested?.Invoke(this, EventArgs.Empty);
-        if (screen == AppScreen.Export && opened) ExportOpened?.Invoke(this, EventArgs.Empty);
+        if (screen == AppScreen.Publish && opened) ValidateRequested?.Invoke(this, EventArgs.Empty);
+        if (screen == AppScreen.History && opened) History.ReloadHistory();
         ShowCellInfo();
         UpdateTitle();
     }
@@ -509,7 +507,6 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         Comparison.ApplyTexts();
         Assignments.ApplyTexts();
         History.ApplyTexts();
-        Export.ApplyTexts();
         Status.ApplyTexts();
         UpdateSaveStatus();
         UpdateTitle();

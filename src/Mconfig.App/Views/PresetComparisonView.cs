@@ -398,7 +398,7 @@ internal sealed class PresetComparisonView : UserControl, IPresetComparisonView
             Font = new Font(Font.FontFamily, Font.Size * 1.15f), Margin = new Padding(0, 0, 0, 4),
         };
         bool multiple = prompt.Presets.Count > 1;
-        ListView list = new TableListView()
+        ListView list = new()
         {
             View = View.Details, FullRowSelect = true, HeaderStyle = ColumnHeaderStyle.Nonclickable, MultiSelect = false,
             Size = new Size(560, 150), Margin = new Padding(0, 0, 0, 8),

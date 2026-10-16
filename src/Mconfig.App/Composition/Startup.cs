@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Reflection;
 using Mconfig.App.Resources;
 using Mconfig.App.Views;
@@ -120,14 +120,10 @@ internal static class Startup
                     new RestoreRevisionHandler(session, store, revisions))
                 {
                     Uncovered = new ExportUncoveredCombinationsHandler(session, new CsvFileWriter()),
+                    Publish = new Mconfig.Application.Releases.Commands.PublishWorkspaceHandler(session, store, new GitPublicationStore(repository, editLock, archive)),
                 },
                 gate, runner, ui, displayLanguage, Environment.UserName, revalidateDelay);
-            using ExportPresenter export = ConnectExport(form, session, new ExportHandlers(
-                    new ReleaseQueryHandlers(session, archive),
-                    new ExportReleaseHandler(session, store, archive),
-                    new ResumeExportHandler(session, archive)),
-                gate, runner, ui, displayLanguage);
-            form.UseLeaveGuard(new LeaveGuard(session, saveDraft, discard, form));
+            form.UseLeaveGuard(new LeaveGuard(session, saveDraft, discard, form, warnOnUncommitted: false));
             form.SaveRequested += (_, _) => _ = data.SaveDraftAsync();
             form.ValidateRequested += (_, _) => _ = data.ValidateAsync();
 
@@ -180,17 +176,6 @@ internal static class Startup
             Log.Information("Application exiting ({Version})", Assembly.GetExecutingAssembly().GetName().Version);
             Log.CloseAndFlush();
         }
-    }
-
-    /// <summary>出力Presenterを作り、初回表示と画面を開き直す経路を同じ再照会へ接続する。</summary>
-    internal static ExportPresenter ConnectExport(
-        MainForm form, EditSession session, ExportHandlers handlers, DataOperationGate gate,
-        IQueryRunner runner, IUiDispatcher ui, DisplayLanguage language)
-    {
-        ExportPresenter presenter = new(form.Export, session, handlers, gate, runner, ui, language);
-        form.Shown += (_, _) => _ = presenter.LoadAsync();
-        form.ExportOpened += (_, _) => _ = presenter.LoadAsync();
-        return presenter;
     }
 
     /// <summary>

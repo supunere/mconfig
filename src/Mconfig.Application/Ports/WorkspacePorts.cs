@@ -133,7 +133,8 @@ public sealed record ReleaseRequest(
     Guid OperationId,
     WorkspaceStamp Stamp,
     ReleaseComparison? CompareTo = null,
-    string? ExpectedTargetKey = null);
+    string? ExpectedTargetKey = null,
+    RevisionId? PreparedRevision = null);
 
 public sealed record ReleaseOutput(string Path, string? Tag, RevisionId? Target, RevisionId? CompareTo);
 

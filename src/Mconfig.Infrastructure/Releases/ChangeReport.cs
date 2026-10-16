@@ -24,12 +24,12 @@ internal static class ChangeReport
         bool release = journal.Kind == ReleaseKind.Release;
         Line("変更差分レポート");
         Line();
-        Line($"種別: {(release ? "リリース版" : "テスト版")}");
+        Line($"種別: {(release ? "設定の発行" : "テスト版")}");
         Line($"出力名: {journal.Name}");
         Line($"作成日時: {Time(journal.CreatedAt)} ({journal.TimeZone})");
         if (release)
         {
-            Line($"対象の確定版: {journal.Target}");
+            Line($"対象のバージョン: {journal.Target}");
         }
         else
         {
@@ -38,14 +38,14 @@ internal static class ChangeReport
         }
         Line(journal.CompareToRevision is null
             ? "比較元: なし（全内容を変更として記載）"
-            : $"比較元: {journal.CompareToName}（確定版 {journal.CompareToRevision}）");
+            : $"比較元: {journal.CompareToName}（バージョン {journal.CompareToRevision}）");
         Line();
 
         Line("■ 変更内容（比較元 → この出力）");
         WriteChanges(Line, changes);
         Line();
 
-        Line(journal.CompareToRevision is null ? "■ 確定済みの変更の履歴" : "■ 確定済みの変更の履歴（比較元より後）");
+        Line(journal.CompareToRevision is null ? "■ 記録済みの変更の履歴" : "■ 記録済みの変更の履歴（比較元より後）");
         if (commits.Count == 0) Line("（なし）");
         foreach (RevisionInfo commit in commits)
         {

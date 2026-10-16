@@ -146,7 +146,7 @@ public sealed class GitRevisionStore : IRevisionStore
         return new CommitOutcome(new RevisionId(revision), files.Stamp(revision));
     }
 
-    private static Tree BuildTree(Repository repo, WorkspaceFileSet files)
+    internal static Tree BuildTree(Repository repo, WorkspaceFileSet files)
     {
         TreeDefinition definition = new();
         foreach ((string path, byte[] bytes) in files.Files)
@@ -158,7 +158,7 @@ public sealed class GitRevisionStore : IRevisionStore
         return repo.ObjectDatabase.CreateTree(definition);
     }
 
-    private static void MoveBranch(Repository repo, string? expectedParent, Commit commit, string reason)
+    internal static void MoveBranch(Repository repo, string? expectedParent, Commit commit, string reason)
     {
         // ブランチ更新の直前にも HEAD を確かめる（期待親と異なれば作ったコミットは使わない）
         string? current = repo.Info.IsHeadUnborn ? null : repo.Head.Tip.Sha;
@@ -176,7 +176,7 @@ public sealed class GitRevisionStore : IRevisionStore
     }
 
     /// <summary>既知ファイルの index だけをコミットに合わせる（外部で stage された他の内容はそのまま残す）。</summary>
-    private static void UpdateIndex(Repository repo, Tree tree)
+    internal static void UpdateIndex(Repository repo, Tree tree)
     {
         HashSet<string> committed = [];
         foreach ((string path, TreeEntry entry) in Walk(tree, ""))
@@ -209,7 +209,7 @@ public sealed class GitRevisionStore : IRevisionStore
     }
 
     /// <summary>作者。"名前 &lt;メール&gt;" 形式ならそのまま、名前だけなら name@local を補う。</summary>
-    private static Signature Author(string author)
+    internal static Signature Author(string author)
     {
         string text = author?.Trim() ?? "";
         if (text.Length == 0) throw new ArgumentException("The author is required.", nameof(author));

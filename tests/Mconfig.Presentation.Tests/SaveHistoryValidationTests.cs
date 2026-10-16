@@ -73,6 +73,38 @@ public sealed class SaveHistoryValidationTests
         Assert.Equal(editContent, f.View.Validation!.Stale);
     }
 
+    [Fact]
+    public async Task CommitRejectsWarningsWithoutWritingHistory()
+    {
+        using Fixture f = await Fixture.CreateAsync();
+        var assignments = new Mconfig.Application.Assignments.Commands.AssignmentCommandHandlers(f.Session);
+        for (int i = 0; i < 2; i++)
+            Assert.Equal(CommandStatus.Applied, assignments.Handle(new Mconfig.Application.Assignments.Commands.AddAssignmentCommand(
+                "memory", new(new Dictionary<string, string>(), null), f.Session.Status.Version)).Status);
+        await f.Presenter.SaveDraftAsync();
+        await f.Presenter.ValidateAsync();
+        Assert.Equal(0, f.View.Validation!.Errors);
+        Assert.True(f.View.Validation.Warnings > 0);
+        var result = await f.Presenter.CommitAsync("Record content containing warnings");
+        Assert.Equal(OperationStatus.ValidationFailed, result!.Status);
+        Assert.Equal(OperationStage.NotStarted, result.CompletedStage);
+        Assert.True(f.Session.Status.HasUncommittedChanges);
+    }
+
+    [Fact]
+    public async Task PublicationPresenterRecordsHistoryAndReturnsZipPath()
+    {
+        using Fixture f = await Fixture.CreateAsync(publish: true);
+        await f.Presenter.ValidateAsync();
+        var result = await f.Presenter.CommitAsync("Publish configuration through presenter");
+        Assert.Equal(OperationStatus.Succeeded, result!.Status);
+        Assert.Equal(OperationStage.Exported, result.CompletedStage);
+        Assert.True(File.Exists(result.Output));
+        Assert.Equal(DataOperation.Publish, f.View.LastOperation!.Operation);
+        Assert.False(f.Session.Status.HasUncommittedChanges);
+        Assert.False(f.View.Validation!.Stale);
+    }
+
     private sealed class Fixture : IDisposable
     {
         private readonly string _root;
@@ -84,7 +116,7 @@ public sealed class SaveHistoryValidationTests
         public RecordingView View { get; }
         public ImmediateRunner Runner { get; } = new();
 
-        private Fixture(string root, WorkspaceLock editLock, JsonWorkspaceStore store, EditSession session, GitRevisionStore revisions)
+        private Fixture(string root, WorkspaceLock editLock, JsonWorkspaceStore store, EditSession session, GitRevisionStore revisions, bool publish)
         {
             _root = root;
             _editLock = editLock;
@@ -94,12 +126,17 @@ public sealed class SaveHistoryValidationTests
             View = (RecordingView)view;
             ImmediateDispatcher ui = new();
             _gate = new(session, Runner, ui);
+            var repository = new GitDataRepository(new WorkspaceLayout(root));
+            var archive = new Mconfig.Infrastructure.Releases.ZipReleaseArchive(repository, editLock, "test");
             Presenter = new(view, session, new SaveHistoryHandlers(new(session), SaveDraft, new(session, store),
-                new(session, store, revisions), new(session, revisions), new(session, store, revisions)),
+                new(session, store, revisions), new(session, revisions), new(session, store, revisions))
+                {
+                    Publish = publish ? new(session, store, new Mconfig.Infrastructure.Releases.GitPublicationStore(repository, editLock, archive)) : null,
+                },
                 _gate, Runner, ui, new DisplayLanguage("ja"), "test");
         }
 
-        public static async Task<Fixture> CreateAsync()
+        public static async Task<Fixture> CreateAsync(bool publish = false)
         {
             string root = Path.Combine(Path.GetTempPath(), "mconfig-validation-tests", Guid.NewGuid().ToString("N"));
             string source = Path.Combine(AppContext.BaseDirectory, "TestData");
@@ -113,7 +150,7 @@ public sealed class SaveHistoryValidationTests
             WorkspaceLock editLock = WorkspaceLock.TryAcquire(layout)!;
             GitDataRepository repository = new(layout);
             JsonWorkspaceStore store = new(layout, editLock, repository);
-            return new(root, editLock, store, new EditSession(await store.LoadAsync(default)), new(repository, editLock));
+            return new(root, editLock, store, new EditSession(await store.LoadAsync(default)), new(repository, editLock), publish);
         }
 
         public void ChangeRate(string value)
@@ -138,6 +175,7 @@ public sealed class SaveHistoryValidationTests
     public class RecordingView : DispatchProxy
     {
         public ValidationDisplay? Validation { get; private set; }
+        public OperationDisplay? LastOperation { get; private set; }
         public List<ValidationDisplay> Validations { get; } = [];
 
         protected override object? Invoke(MethodInfo? method, object?[]? args)
@@ -147,6 +185,7 @@ public sealed class SaveHistoryValidationTests
                 Validation = (ValidationDisplay)args![0]!;
                 Validations.Add(Validation);
             }
+            if (method.Name == nameof(ISaveHistoryView.ShowOperationResult)) LastOperation = (OperationDisplay)args![0]!;
             return method.ReturnType == typeof(bool) ? false : null;
         }
     }

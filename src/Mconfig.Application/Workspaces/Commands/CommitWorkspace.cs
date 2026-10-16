@@ -12,7 +12,8 @@ public sealed record CommitWorkspaceCommand(
     string Author,
     SessionVersion ExpectedVersion,
     WarningApproval? Approval = null,
-    bool ConfirmShortReason = false);
+    bool ConfirmShortReason = false,
+    bool RejectWarnings = false);
 
 public sealed class CommitWorkspaceHandler(EditSession session, IWorkspaceStore store, IRevisionStore revisions)
 {
@@ -82,6 +83,8 @@ public sealed class CommitWorkspaceHandler(EditSession session, IWorkspaceStore 
 
         (OperationResult? result, IReadOnlyList<ValidationIssue> issues) = WorkspaceChecks.ValidateForWrite(
             snapshot, ValidationOperation.Commit, command.Approval, operationId, cancellationToken, progress);
+        if (command.RejectWarnings && issues.Any(i => ValidationPolicy.SeverityFor(i.Code, ValidationOperation.Commit) == ValidationSeverity.Warning))
+            return (WorkspaceChecks.Stop(snapshot, OperationStatus.ValidationFailed, operationId, issues), snapshot.Edited, issues);
         return (result, snapshot.Edited, issues);
     }
 }

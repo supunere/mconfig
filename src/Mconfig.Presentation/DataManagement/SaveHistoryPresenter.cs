@@ -1,3 +1,4 @@
+using Mconfig.Application.Releases.Commands;
 using Mconfig.Application.Assignments.Commands;
 using Mconfig.Application.History;
 using Mconfig.Application.History.Commands;
@@ -16,7 +17,6 @@ namespace Mconfig.Presentation.DataManagement;
 public interface ISaveHistoryView : IDataOperationView
 {
     event EventHandler? ValidateRequested;
-    event EventHandler? SaveDraftRequested;
     event EventHandler? DiscardRequested;
     event EventHandler<CommitRequestedEventArgs>? CommitRequested;
     event EventHandler? HistoryRequested;
@@ -60,6 +60,7 @@ public sealed record SaveHistoryHandlers(
 {
     /// <summary>未割当の組み合わせの CSV 書出し（なければ書き出せない）。</summary>
     public ExportUncoveredCombinationsHandler? Uncovered { get; init; }
+    public PublishWorkspaceHandler? Publish { get; init; }
 }
 
 /// <summary>
@@ -113,7 +114,6 @@ public sealed class SaveHistoryPresenter : IDisposable
         _gate.BusyChanged += OnBusyChanged;
         _gate.ProgressChanged += OnProgressChanged;
         _view.ValidateRequested += OnValidateRequested;
-        _view.SaveDraftRequested += OnSaveDraftRequested;
         _view.DiscardRequested += OnDiscardRequested;
         _view.CommitRequested += OnCommitRequested;
         _view.HistoryRequested += OnHistoryRequested;
@@ -340,8 +340,6 @@ public sealed class SaveHistoryPresenter : IDisposable
 
     // ---- 一時保存・破棄・確定保存 ----
 
-    private void OnSaveDraftRequested(object? sender, EventArgs e) => _ = SaveDraftAsync();
-
     public Task<OperationResult?> SaveDraftAsync() => RunOperationAsync(DataOperation.SaveDraft,
         version => _handlers.SaveDraft.HandleAsync(new SaveDraftCommand(version)));
 
@@ -354,13 +352,16 @@ public sealed class SaveHistoryPresenter : IDisposable
     private void OnCommitRequested(object? sender, CommitRequestedEventArgs e) => _ = CommitAsync(e.Reason);
 
     /// <summary>
-    /// 確定保存。承認が必要な警告や短い理由があれば、利用者に確認してから、結果の指紋で承認して再実行する。
+    /// 履歴に記録する。エラー・警告は拒否し、短い理由だけは利用者に確認して再実行する。
     /// 確認の間に内容が変われば、承認は Handler の照合で無効になる。
     /// </summary>
     public async Task<OperationResult?> CommitAsync(string reason)
     {
-        OperationResult? result = await RunOperationAsync(DataOperation.Commit,
-            version => _handlers.Commit.HandleAsync(new CommitWorkspaceCommand(reason, _author, version), _gate.Token, _gate.CurrentProgress),
+        DataOperation operation = _handlers.Publish is null ? DataOperation.Commit : DataOperation.Publish;
+        OperationResult? result = await RunOperationAsync(operation,
+            version => _handlers.Publish is { } publish
+                ? publish.HandleAsync(new(reason, _author, version), _gate.Token, _gate.CurrentProgress)
+                : _handlers.Commit.HandleAsync(new CommitWorkspaceCommand(reason, _author, version, RejectWarnings: true), _gate.Token, _gate.CurrentProgress),
             showConfirmation: false, cancelable: true)
             .ConfigureAwait(false);
         if (result?.Status != OperationStatus.ConfirmationRequired) return result;
@@ -372,9 +373,11 @@ public sealed class SaveHistoryPresenter : IDisposable
         if (!approved) return result;
 
         WarningApproval? approval = result.Fingerprint is null ? null : new WarningApproval(result.Fingerprint, WorkspaceValidator.RuleVersion);
-        return await RunOperationAsync(DataOperation.Commit,
-            version => _handlers.Commit.HandleAsync(
-                new CommitWorkspaceCommand(reason, _author, result.Version, approval, ConfirmShortReason: true), _gate.Token, _gate.CurrentProgress),
+        return await RunOperationAsync(operation,
+            version => _handlers.Publish is { } publish
+                ? publish.HandleAsync(new(reason, _author, result.Version, ConfirmShortReason: true), _gate.Token, _gate.CurrentProgress)
+                : _handlers.Commit.HandleAsync(
+                new CommitWorkspaceCommand(reason, _author, result.Version, approval, ConfirmShortReason: true, RejectWarnings: true), _gate.Token, _gate.CurrentProgress),
             cancelable: true)
             .ConfigureAwait(false);
     }
@@ -502,7 +505,7 @@ public sealed class SaveHistoryPresenter : IDisposable
                 if (!_disposed) _view.ShowOperationResult(_map.Result(operation, result));
             });
         }
-        if (result.CompletedStage >= OperationStage.DraftSaved && operation is DataOperation.Commit or DataOperation.Restore)
+        if (result.CompletedStage >= OperationStage.DraftSaved && operation is DataOperation.Commit or DataOperation.Publish or DataOperation.Restore)
             _ = LoadHistoryAsync(append: false);
         return result;
     }
@@ -515,7 +518,6 @@ public sealed class SaveHistoryPresenter : IDisposable
         _gate.BusyChanged -= OnBusyChanged;
         _gate.ProgressChanged -= OnProgressChanged;
         _view.ValidateRequested -= OnValidateRequested;
-        _view.SaveDraftRequested -= OnSaveDraftRequested;
         _view.DiscardRequested -= OnDiscardRequested;
         _view.CommitRequested -= OnCommitRequested;
         _view.HistoryRequested -= OnHistoryRequested;

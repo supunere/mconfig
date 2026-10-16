@@ -68,12 +68,13 @@ internal static class Feedback
             OperationStatus.Succeeded => result.Operation switch
             {
                 DataOperation.Commit => UiText.Get("Result_Committed"),
+                DataOperation.Publish => UiText.Format("Publish_Succeeded", result.Output ?? ""),
                 DataOperation.SaveDraft => UiText.Get("Result_DraftSaved"),
                 DataOperation.Discard => UiText.Get("Result_Discarded"),
                 DataOperation.Restore => UiText.Get("Result_Restored"),
                 _ => UiText.Format("Result_Exported", result.Output ?? ""),
             },
-            OperationStatus.NoChanges => UiText.Get(result.Operation == DataOperation.Commit ? "Result_NoChangesCommit" : "Result_NoChanges"),
+            OperationStatus.NoChanges => UiText.Get(result.Operation is DataOperation.Commit or DataOperation.Publish ? "Result_NoChangesCommit" : "Result_NoChanges"),
             OperationStatus.ValidationFailed => UiText.Format("Result_ValidationFailed", op),
             OperationStatus.ConfirmationRequired => UiText.Format("Result_NotConfirmed", op),
             OperationStatus.Conflict => UiText.Format("Result_Conflict", op),
@@ -87,10 +88,10 @@ internal static class Feedback
             message += Environment.NewLine + UiText.Get("Reason_" + reason);
         // 一時保存は済んだが履歴の保存が終わらなかった場合を区別する
         if (result.Status != OperationStatus.Succeeded && result.Stage == OperationStage.DraftSaved)
-            message += Environment.NewLine + UiText.Get(result.Operation == DataOperation.Commit ? "Result_DraftSavedButNotCommitted" : "Result_DraftSavedOnly");
+            message += Environment.NewLine + UiText.Get(result.Operation is DataOperation.Commit or DataOperation.Publish ? "Result_DraftSavedButNotCommitted" : "Result_DraftSavedOnly");
         if (result.Issues.Count > 0 && result.Status is OperationStatus.ValidationFailed)
             message += Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine,
-                result.Issues.Where(i => i.Severity == ValidationSeverity.Error).Take(20).Select(i => "・" + Issue(i)));
+                result.Issues.Where(i => i.Severity == ValidationSeverity.Error || result.Operation == DataOperation.Publish).Take(20).Select(i => "・" + Issue(i)));
         return message;
     }
 

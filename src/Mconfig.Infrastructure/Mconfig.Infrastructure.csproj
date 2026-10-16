@@ -20,6 +20,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Mconfig.Tests" />
     <InternalsVisibleTo Include="Mconfig.App.Tests" />
+    <InternalsVisibleTo Include="Mconfig.Presentation.Tests" />
     <!-- 停止試験の子プロセス（tools/Mconfig.FaultHost）が故障注入の段階を使う -->
     <InternalsVisibleTo Include="Mconfig.FaultHost" />
   </ItemGroup>

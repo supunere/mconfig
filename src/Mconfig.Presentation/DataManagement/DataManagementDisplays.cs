@@ -114,7 +114,7 @@ public sealed record PendingExportsDisplay(IReadOnlyList<PendingExportDisplay> E
 /// <summary>確定保存・出力の前に承認を求める警告と、短い変更理由（null でなければその文字数）。</summary>
 public sealed record ConfirmationRequest(IReadOnlyList<IssueDisplay> Warnings, int? ShortReasonLength);
 
-public enum DataOperation { SaveDraft, Discard, Commit, Restore, ExportTest, ExportRelease, ResumeExport, ExportUncovered }
+public enum DataOperation { SaveDraft, Discard, Commit, Restore, ExportTest, ExportRelease, ResumeExport, ExportUncovered, Publish }
 
 /// <summary>
 /// 全件検証などの進捗。Operation が null なら「検証」、それ以外はその操作の中の検証・書出し。
