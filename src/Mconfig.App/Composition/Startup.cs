@@ -13,7 +13,6 @@ using Mconfig.Application.Assignments.Queries;
 using Mconfig.Application.History.Commands;
 using Mconfig.Application.History.Queries;
 using Mconfig.Application.Releases.Commands;
-using Mconfig.Application.Releases.Queries;
 using Mconfig.Application.Workspaces.Commands;
 using Mconfig.Application.Workspaces.Queries;
 using Mconfig.Infrastructure.Releases;
@@ -115,15 +114,14 @@ internal static class Startup
                     new ValidateWorkspaceHandler(session),
                     saveDraft,
                     discard,
-                    new CommitWorkspaceHandler(session, store, revisions),
+                    new Mconfig.Application.Releases.Commands.PublishWorkspaceHandler(session, store, new GitPublicationStore(repository, editLock, archive)),
                     new HistoryQueryHandlers(session, revisions),
                     new RestoreRevisionHandler(session, store, revisions))
                 {
                     Uncovered = new ExportUncoveredCombinationsHandler(session, new CsvFileWriter()),
-                    Publish = new Mconfig.Application.Releases.Commands.PublishWorkspaceHandler(session, store, new GitPublicationStore(repository, editLock, archive)),
                 },
                 gate, runner, ui, displayLanguage, Environment.UserName, revalidateDelay);
-            form.UseLeaveGuard(new LeaveGuard(session, saveDraft, discard, form, warnOnUncommitted: false));
+            form.UseLeaveGuard(new LeaveGuard(session, saveDraft, discard, form));
             form.SaveRequested += (_, _) => _ = data.SaveDraftAsync();
             form.ValidateRequested += (_, _) => _ = data.ValidateAsync();
 

@@ -39,7 +39,7 @@ public sealed class DataDisplayMapper(DisplayLanguage language, GetDefinitionsHa
 
     /// <summary>操作の結果の表示。</summary>
     public OperationDisplay Result(DataOperation operation, OperationResult result) =>
-        new(operation, result.Status, result.CompletedStage, Issues(result.Issues), result.Output, result.Detail) { Reason = result.Reason };
+        new(operation, result.Status, result.CompletedStage, Issues(result.Issues), result.Output, result.Detail) { Reason = result.Reason, FixedPublicationMetadata = result.FixedPublicationMetadata };
 
     /// <summary>履歴や定義を読めずに始められなかったときの表示（Detail は技術的な要約）。</summary>
     public static OperationDisplay Unavailable(DataOperation operation, string detail) =>

@@ -461,10 +461,6 @@ internal sealed class MainForm : Form, ILeaveConfirmationView
         };
     }
 
-    public bool ConfirmExitWithUncommitted() =>
-        MessageBox.Show(this, UiText.Get("Leave_UncommittedExit"), UiText.Get("App_Title"),
-            MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes;
-
     public void ShowBusy() =>
         MessageBox.Show(this, UiText.Get("Leave_Busy"), UiText.Get("App_Title"), MessageBoxButtons.OK, MessageBoxIcon.Information);
 

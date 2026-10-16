@@ -24,7 +24,7 @@ public sealed class SaveHistoryValidationTests
         await f.Presenter.ValidateAsync();
         Assert.False(f.View.Validation!.Stale);
 
-        var result = await f.Presenter.CommitAsync("Record initial validated sample");
+        var result = await f.Presenter.PublishAsync("Record initial validated sample");
 
         Assert.Equal(OperationStatus.Succeeded, result!.Status);
         Assert.False(f.Session.Status.HasUncommittedChanges);
@@ -85,7 +85,7 @@ public sealed class SaveHistoryValidationTests
         await f.Presenter.ValidateAsync();
         Assert.Equal(0, f.View.Validation!.Errors);
         Assert.True(f.View.Validation.Warnings > 0);
-        var result = await f.Presenter.CommitAsync("Record content containing warnings");
+        var result = await f.Presenter.PublishAsync("Record content containing warnings");
         Assert.Equal(OperationStatus.ValidationFailed, result!.Status);
         Assert.Equal(OperationStage.NotStarted, result.CompletedStage);
         Assert.True(f.Session.Status.HasUncommittedChanges);
@@ -94,15 +94,30 @@ public sealed class SaveHistoryValidationTests
     [Fact]
     public async Task PublicationPresenterRecordsHistoryAndReturnsZipPath()
     {
-        using Fixture f = await Fixture.CreateAsync(publish: true);
+        using Fixture f = await Fixture.CreateAsync();
         await f.Presenter.ValidateAsync();
-        var result = await f.Presenter.CommitAsync("Publish configuration through presenter");
+        var result = await f.Presenter.PublishAsync("Publish configuration through presenter");
         Assert.Equal(OperationStatus.Succeeded, result!.Status);
         Assert.Equal(OperationStage.Exported, result.CompletedStage);
         Assert.True(File.Exists(result.Output));
         Assert.Equal(DataOperation.Publish, f.View.LastOperation!.Operation);
         Assert.False(f.Session.Status.HasUncommittedChanges);
         Assert.False(f.View.Validation!.Stale);
+    }
+
+    [Theory]
+    [InlineData(false, false, OperationStatus.ConfirmationRequired)]
+    [InlineData(true, false, OperationStatus.Succeeded)]
+    [InlineData(true, true, OperationStatus.Conflict)]
+    public async Task ShortPublicationReasonUsesCurrentConfirmationAndVersion(bool approve, bool editDuringConfirmation, OperationStatus expected)
+    {
+        using Fixture f = await Fixture.CreateAsync();
+        f.View.ApproveShortReason = approve;
+        if (editDuringConfirmation) f.View.OnShortReason = () => f.ChangeRate("3600");
+        var result = await f.Presenter.PublishAsync("確認");
+        Assert.Equal(expected, result!.Status);
+        Assert.Equal(1, f.View.ShortReasonConfirmations);
+        if (expected != OperationStatus.Succeeded) Assert.True(f.Session.Status.HasUncommittedChanges);
     }
 
     private sealed class Fixture : IDisposable
@@ -116,7 +131,7 @@ public sealed class SaveHistoryValidationTests
         public RecordingView View { get; }
         public ImmediateRunner Runner { get; } = new();
 
-        private Fixture(string root, WorkspaceLock editLock, JsonWorkspaceStore store, EditSession session, GitRevisionStore revisions, bool publish)
+        private Fixture(string root, WorkspaceLock editLock, JsonWorkspaceStore store, EditSession session, GitRevisionStore revisions)
         {
             _root = root;
             _editLock = editLock;
@@ -129,14 +144,12 @@ public sealed class SaveHistoryValidationTests
             var repository = new GitDataRepository(new WorkspaceLayout(root));
             var archive = new Mconfig.Infrastructure.Releases.ZipReleaseArchive(repository, editLock, "test");
             Presenter = new(view, session, new SaveHistoryHandlers(new(session), SaveDraft, new(session, store),
-                new(session, store, revisions), new(session, revisions), new(session, store, revisions))
-                {
-                    Publish = publish ? new(session, store, new Mconfig.Infrastructure.Releases.GitPublicationStore(repository, editLock, archive)) : null,
-                },
+                new(session, store, new Mconfig.Infrastructure.Releases.GitPublicationStore(repository, editLock, archive)),
+                new(session, revisions), new(session, store, revisions)),
                 _gate, Runner, ui, new DisplayLanguage("ja"), "test");
         }
 
-        public static async Task<Fixture> CreateAsync(bool publish = false)
+        public static async Task<Fixture> CreateAsync()
         {
             string root = Path.Combine(Path.GetTempPath(), "mconfig-validation-tests", Guid.NewGuid().ToString("N"));
             string source = Path.Combine(AppContext.BaseDirectory, "TestData");
@@ -150,7 +163,7 @@ public sealed class SaveHistoryValidationTests
             WorkspaceLock editLock = WorkspaceLock.TryAcquire(layout)!;
             GitDataRepository repository = new(layout);
             JsonWorkspaceStore store = new(layout, editLock, repository);
-            return new(root, editLock, store, new EditSession(await store.LoadAsync(default)), new(repository, editLock), publish);
+            return new(root, editLock, store, new EditSession(await store.LoadAsync(default)), new(repository, editLock));
         }
 
         public void ChangeRate(string value)
@@ -174,13 +187,22 @@ public sealed class SaveHistoryValidationTests
 
     public class RecordingView : DispatchProxy
     {
+        public bool ApproveShortReason { get; set; }
+        public Action? OnShortReason { get; set; }
+        public int ShortReasonConfirmations { get; private set; }
         public ValidationDisplay? Validation { get; private set; }
         public OperationDisplay? LastOperation { get; private set; }
         public List<ValidationDisplay> Validations { get; } = [];
 
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
-            if (method!.Name == nameof(ISaveHistoryView.ShowValidation))
+            if (method!.Name == nameof(ISaveHistoryView.ConfirmShortReason))
+            {
+                ShortReasonConfirmations++;
+                OnShortReason?.Invoke();
+                return ApproveShortReason;
+            }
+            if (method.Name == nameof(ISaveHistoryView.ShowValidation))
             {
                 Validation = (ValidationDisplay)args![0]!;
                 Validations.Add(Validation);

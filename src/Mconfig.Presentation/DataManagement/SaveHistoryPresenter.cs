@@ -18,7 +18,7 @@ public interface ISaveHistoryView : IDataOperationView
 {
     event EventHandler? ValidateRequested;
     event EventHandler? DiscardRequested;
-    event EventHandler<CommitRequestedEventArgs>? CommitRequested;
+    event EventHandler<PublishRequestedEventArgs>? PublishRequested;
     event EventHandler? HistoryRequested;
     event EventHandler? MoreHistoryRequested;
     event EventHandler<RevisionEventArgs>? RevisionSelected;
@@ -45,7 +45,7 @@ public interface ISaveHistoryView : IDataOperationView
     void ShowRevisionChanges(RevisionDisplay? revision, IReadOnlyList<ChangeDisplay> changes);
 
     bool ConfirmDiscard();
-    bool ConfirmWarnings(ConfirmationRequest request);
+    bool ConfirmShortReason(int length);
     bool ConfirmRestore(RestorePreviewDisplay preview);
 }
 
@@ -54,20 +54,19 @@ public sealed record SaveHistoryHandlers(
     ValidateWorkspaceHandler Validate,
     SaveDraftHandler SaveDraft,
     DiscardEditsHandler Discard,
-    CommitWorkspaceHandler Commit,
+    PublishWorkspaceHandler Publish,
     HistoryQueryHandlers History,
     RestoreRevisionHandler Restore)
 {
     /// <summary>未割当の組み合わせの CSV 書出し（なければ書き出せない）。</summary>
     public ExportUncoveredCombinationsHandler? Uncovered { get; init; }
-    public PublishWorkspaceHandler? Publish { get; init; }
 }
 
 /// <summary>
-/// 保存と履歴の画面。検証・一時保存・破棄・確定保存・履歴と意味差分・復元を Query と Command で行う。
-/// 確定保存は承認が必要な警告や短い理由を確認してから、結果の指紋と規則の版で承認して再実行する。
+/// 保存・発行・履歴の画面。検証・保存・破棄・発行・履歴と意味差分・復元を Query と Command で行う。
+/// 発行はエラー・警告を拒否し、短い理由だけを確認して再実行する。
 /// 結果は完了した段階とともに示し、履歴と状態は変更通知で読み直す。操作は <see cref="DataOperationGate"/> を通して一つずつ実行する。
-/// 「履歴に保存」を妨げるエラーの件数と、前回の履歴保存からの変更は、内容が変わるたびに背景で求め直す。
+/// 前回の発行からの変更は、内容が変わるたびに背景で求め直す。
 /// 検証結果の該当箇所へ移る要求は、移る先（画面とカテゴリ）を決めて <see cref="NavigationRequested"/> で知らせる。
 /// </summary>
 public sealed class SaveHistoryPresenter : IDisposable
@@ -87,10 +86,8 @@ public sealed class SaveHistoryPresenter : IDisposable
     private readonly List<RevisionDisplay> _history = [];
     private readonly RequestTracker _historyRequests = new();
     private readonly RequestTracker _diffRequests = new();
-    private readonly RequestTracker _errorRequests = new();
     private readonly RequestTracker _uncommittedRequests = new();
     private readonly RequestTracker _changeRequests = new();
-    private int? _commitErrors;
     private ContentFingerprint? _validatedFingerprint;
     private ValidationDisplay? _validation;
     private bool _disposed;
@@ -115,7 +112,7 @@ public sealed class SaveHistoryPresenter : IDisposable
         _gate.ProgressChanged += OnProgressChanged;
         _view.ValidateRequested += OnValidateRequested;
         _view.DiscardRequested += OnDiscardRequested;
-        _view.CommitRequested += OnCommitRequested;
+        _view.PublishRequested += OnPublishRequested;
         _view.HistoryRequested += OnHistoryRequested;
         _view.MoreHistoryRequested += OnMoreHistoryRequested;
         _view.RevisionSelected += OnRevisionSelected;
@@ -129,11 +126,11 @@ public sealed class SaveHistoryPresenter : IDisposable
     /// <summary>検証結果の該当箇所へ移る要求（画面の切り替えは Composition Root が行う）。</summary>
     public event EventHandler<NavigationTarget>? NavigationRequested;
 
-    /// <summary>最初の表示。状態・履歴・エラーの件数・前回の履歴保存からの変更を読む。</summary>
+    /// <summary>最初の表示。状態・履歴・前回の発行からの変更を読む。</summary>
     public Task LoadAsync()
     {
         ShowState();
-        return Task.WhenAll(LoadHistoryAsync(append: false), CountCommitErrorsAsync(), LoadUncommittedChangesAsync());
+        return Task.WhenAll(LoadHistoryAsync(append: false), LoadUncommittedChangesAsync());
     }
 
     // ---- 状態 ----
@@ -170,7 +167,7 @@ public sealed class SaveHistoryPresenter : IDisposable
         WorkspaceStatus status = _status.Handle();
         _view.ShowState(new DataStateDisplay(
             Editing.IsAllowed(status), status.HasUnsavedChanges, status.HasUncommittedChanges,
-            status.IsReadOnly, status.IsRecoveryPending, _gate.Busy) { CommitErrors = _commitErrors, Author = _author });
+            status.IsReadOnly, status.IsRecoveryPending, _gate.Busy) { Author = _author });
     }
 
     /// <summary>連続した編集では、最後の編集から少し待ってからまとめて数え直す。</summary>
@@ -182,21 +179,7 @@ public sealed class SaveHistoryPresenter : IDisposable
             await Task.Delay(_revalidateDelay).ConfigureAwait(false);
             if (!_changeRequests.IsLatest(request)) return;
         }
-        await Task.WhenAll(CountCommitErrorsAsync(), LoadUncommittedChangesAsync()).ConfigureAwait(false);
-    }
-
-    /// <summary>「履歴に保存」を妨げるエラーを数える（被覆の検証は警告だけなので含めない）。</summary>
-    private async Task CountCommitErrorsAsync()
-    {
-        long request = _errorRequests.Next();
-        WorkspaceValidationReadModel model = await _runner.RunAsync(
-            () => _handlers.Validate.Handle(new ValidateWorkspaceQuery(ValidationOperation.Commit, IncludeCoverage: false))).ConfigureAwait(false);
-        _ui.Post(() =>
-        {
-            if (_disposed || !_errorRequests.IsLatest(request)) return;
-            _commitErrors = model.Items.Count(i => i.Severity == ValidationSeverity.Error);
-            ShowState();
-        });
+        await LoadUncommittedChangesAsync().ConfigureAwait(false);
     }
 
     private async Task LoadUncommittedChangesAsync()
@@ -349,35 +332,26 @@ public sealed class SaveHistoryPresenter : IDisposable
         _ = RunOperationAsync(DataOperation.Discard, version => _handlers.Discard.HandleAsync(new DiscardEditsCommand(version)));
     }
 
-    private void OnCommitRequested(object? sender, CommitRequestedEventArgs e) => _ = CommitAsync(e.Reason);
+    private void OnPublishRequested(object? sender, PublishRequestedEventArgs e) => _ = PublishAsync(e.Reason);
 
     /// <summary>
     /// 履歴に記録する。エラー・警告は拒否し、短い理由だけは利用者に確認して再実行する。
-    /// 確認の間に内容が変われば、承認は Handler の照合で無効になる。
+    /// 確認の間にセッションが変われば、Handler のバージョン照合で再実行を拒否する。
     /// </summary>
-    public async Task<OperationResult?> CommitAsync(string reason)
+    public async Task<OperationResult?> PublishAsync(string reason)
     {
-        DataOperation operation = _handlers.Publish is null ? DataOperation.Commit : DataOperation.Publish;
+        const DataOperation operation = DataOperation.Publish;
         OperationResult? result = await RunOperationAsync(operation,
-            version => _handlers.Publish is { } publish
-                ? publish.HandleAsync(new(reason, _author, version), _gate.Token, _gate.CurrentProgress)
-                : _handlers.Commit.HandleAsync(new CommitWorkspaceCommand(reason, _author, version, RejectWarnings: true), _gate.Token, _gate.CurrentProgress),
+            version => _handlers.Publish.HandleAsync(new(reason, _author, version), _gate.Token, _gate.CurrentProgress),
             showConfirmation: false, cancelable: true)
             .ConfigureAwait(false);
         if (result?.Status != OperationStatus.ConfirmationRequired) return result;
 
-        IReadOnlyList<IssueDisplay> issues = await _gate.OnUi(() => _map.Issues(result.Issues)).ConfigureAwait(false);
-        int? shortReason = result.Issues.Any(i => i.Code == ValidationCode.ReasonTooShort) ? reason.Trim().Length : null;
-        bool approved = await _gate.OnUi(() => _view.ConfirmWarnings(new ConfirmationRequest(
-            issues.Where(i => i.RequiresConfirmation && i.Code != ValidationCode.ReasonTooShort).ToArray(), shortReason))).ConfigureAwait(false);
+        bool approved = await _gate.OnUi(() => _view.ConfirmShortReason(reason.Trim().Length)).ConfigureAwait(false);
         if (!approved) return result;
 
-        WarningApproval? approval = result.Fingerprint is null ? null : new WarningApproval(result.Fingerprint, WorkspaceValidator.RuleVersion);
         return await RunOperationAsync(operation,
-            version => _handlers.Publish is { } publish
-                ? publish.HandleAsync(new(reason, _author, result.Version, ConfirmShortReason: true), _gate.Token, _gate.CurrentProgress)
-                : _handlers.Commit.HandleAsync(
-                new CommitWorkspaceCommand(reason, _author, result.Version, approval, ConfirmShortReason: true, RejectWarnings: true), _gate.Token, _gate.CurrentProgress),
+            _ => _handlers.Publish.HandleAsync(new(reason, _author, result.Version, ConfirmShortReason: true), _gate.Token, _gate.CurrentProgress),
             cancelable: true)
             .ConfigureAwait(false);
     }
@@ -505,7 +479,7 @@ public sealed class SaveHistoryPresenter : IDisposable
                 if (!_disposed) _view.ShowOperationResult(_map.Result(operation, result));
             });
         }
-        if (result.CompletedStage >= OperationStage.DraftSaved && operation is DataOperation.Commit or DataOperation.Publish or DataOperation.Restore)
+        if (result.CompletedStage >= OperationStage.DraftSaved && operation is DataOperation.Publish or DataOperation.Restore)
             _ = LoadHistoryAsync(append: false);
         return result;
     }
@@ -519,7 +493,7 @@ public sealed class SaveHistoryPresenter : IDisposable
         _gate.ProgressChanged -= OnProgressChanged;
         _view.ValidateRequested -= OnValidateRequested;
         _view.DiscardRequested -= OnDiscardRequested;
-        _view.CommitRequested -= OnCommitRequested;
+        _view.PublishRequested -= OnPublishRequested;
         _view.HistoryRequested -= OnHistoryRequested;
         _view.MoreHistoryRequested -= OnMoreHistoryRequested;
         _view.RevisionSelected -= OnRevisionSelected;

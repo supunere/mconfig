@@ -1,7 +1,6 @@
 using Mconfig.App.Resources;
 using Mconfig.Application.History;
 using Mconfig.Application.Ports;
-using Mconfig.Application.Releases.Queries;
 using Mconfig.Domain.Configuration;
 using Mconfig.Presentation.DataManagement;
 
@@ -164,7 +163,7 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         _goToIssue.Click += (_, _) => GoToIssue();
         _issues.DoubleClick += (_, _) => GoToIssue();
         _issues.SelectedIndexChanged += (_, _) => UpdateButtons();
-        _commit.Click += (_, _) => CommitRequested?.Invoke(this, new CommitRequestedEventArgs(_reason.Text));
+        _commit.Click += (_, _) => PublishRequested?.Invoke(this, new PublishRequestedEventArgs(_reason.Text));
         _copyIssues.Click += (_, _) => CopyIssues();
         _reloadHistory.Click += (_, _) => HistoryRequested?.Invoke(this, EventArgs.Empty);
         _moreHistory.Click += (_, _) => MoreHistoryRequested?.Invoke(this, EventArgs.Empty);
@@ -220,7 +219,7 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
 
     public event EventHandler? ValidateRequested;
     public event EventHandler? DiscardRequested;
-    public event EventHandler<CommitRequestedEventArgs>? CommitRequested;
+    public event EventHandler<PublishRequestedEventArgs>? PublishRequested;
     public event EventHandler? HistoryRequested;
     public event EventHandler? MoreHistoryRequested;
     public event EventHandler<RevisionEventArgs>? RevisionSelected;
@@ -401,7 +400,7 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
 
     public void ShowOperationResult(OperationDisplay result)
     {
-        if (result.Operation is DataOperation.Commit or DataOperation.Publish && result.Status == Mconfig.Application.Workspaces.OperationStatus.Succeeded) _reason.Clear();
+        if (result.Operation is DataOperation.Publish && result.Status == Mconfig.Application.Workspaces.OperationStatus.Succeeded) _reason.Clear();
         Feedback.ShowOperation(FindForm(), result);
     }
 
@@ -412,24 +411,10 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         MessageBox.Show(FindForm(), UiText.Get("Data_DiscardConfirm"), UiText.Get("Data_Discard"),
             MessageBoxButtons.OKCancel, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.OK;
 
-    public bool ConfirmWarnings(ConfirmationRequest request)
-    {
-        List<string> lines = [];
-        if (request.Warnings.Count > 0)
-        {
-            lines.Add(UiText.Get("Confirm_Warnings"));
-            lines.AddRange(request.Warnings.Select(w => "・" + Feedback.Issue(w)));
-        }
-        if (request.ShortReasonLength is int length)
-        {
-            if (lines.Count > 0) lines.Add("");
-            lines.Add(UiText.Format("Confirm_ShortReason", length, CommitReason.MinimumLength));
-        }
-        lines.Add("");
-        lines.Add(UiText.Get("Confirm_Proceed"));
-        return MessageBox.Show(FindForm(), string.Join(Environment.NewLine, lines), UiText.Get("Confirm_Title"),
+    public bool ConfirmShortReason(int length) =>
+        MessageBox.Show(FindForm(), UiText.Format("Confirm_ShortReason", length, CommitReason.MinimumLength)
+            + Environment.NewLine + Environment.NewLine + UiText.Get("Confirm_Proceed"), UiText.Get("Confirm_Title"),
             MessageBoxButtons.OKCancel, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.OK;
-    }
 
     public bool ConfirmRestore(RestorePreviewDisplay preview)
     {
@@ -476,11 +461,14 @@ internal sealed class SaveHistoryView : UserControl, ISaveHistoryView
         _validate.Enabled = !busy && !running;
         _exportUncovered.Enabled = !running && _validationShown is { Incomplete: false, HasUncovered: true };
         bool valid = _validationShown is { Incomplete: false, Stale: false, Errors: 0, Warnings: 0 };
-        _commit.Enabled = editable && !running && _stateShown is { Unsaved: false, Uncommitted: true, CommitErrors: 0 } && valid;
-        _blocked.Text = _stateShown is { Unsaved: false, Uncommitted: false } ? UiText.Get("Data_NothingToCommit")
-            : _validationShown is { Incomplete: false, Stale: false } validation && (validation.Errors > 0 || validation.Warnings > 0)
+        _commit.Enabled = editable && !running && _stateShown is { Unsaved: false } && valid;
+        bool existingVersion = _stateShown is { Unsaved: false, Uncommitted: false };
+        _commit.Text = UiText.Get(existingVersion ? "Publish_CurrentVersion" : "Data_Commit");
+        _reason.Enabled = !existingVersion && editable;
+        _blocked.Text = _validationShown is { Incomplete: false, Stale: false } validation && (validation.Errors > 0 || validation.Warnings > 0)
                 ? UiText.Get("Data_CommitIssuesBlocked")
-                : !valid ? UiText.Get("History_ValidationPending") : "";
+                : !valid ? UiText.Get("History_ValidationPending") : existingVersion ? UiText.Get("Publish_CurrentHint") : "";
+        _blocked.ForeColor = valid ? UiAppearance.Muted : SystemInformation.HighContrast ? SystemColors.WindowText : Color.FromArgb(196, 43, 28);
         _moreHistory.Enabled = _hasMore;
         _restore.Enabled = editable && SelectedRevision() is not null;
         _compare.Enabled = SelectedRevision() is not null && !busy;

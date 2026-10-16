@@ -1,6 +1,5 @@
 using Mconfig.Application.History;
 using Mconfig.Application.Ports;
-using Mconfig.Application.Releases.Queries;
 using Mconfig.Application.Workspaces;
 using Mconfig.Application.Workspaces.Editing;
 using Mconfig.Domain.Configuration;
@@ -57,12 +56,9 @@ public sealed record ValidationDisplay(IReadOnlyList<IssueDisplay> Items, bool S
 
 /// <summary>
 /// 保存・履歴の操作ボタンの状態。Busy は保存・出力などを実行中。
-/// CommitErrors は「履歴に保存」を妨げるエラーの件数（数え終わるまでは null）で、1 件以上なら「履歴に保存」を押せない。
 /// </summary>
 public sealed record DataStateDisplay(bool Editable, bool Unsaved, bool Uncommitted, bool ReadOnly, bool RecoveryPending, bool Busy)
 {
-    public int? CommitErrors { get; init; }
-
     /// <summary>履歴に記録する作成者（Windows のユーザー名）。</summary>
     public string Author { get; init; } = "";
 }
@@ -89,32 +85,7 @@ public enum RestoreChoice { Restore, RestoreByDiscarding, SaveOrDiscardFirst, Un
 public sealed record RestorePreviewDisplay(
     RevisionDisplay Revision, IReadOnlyList<ChangeDisplay> Changes, IReadOnlyList<IssueDisplay> Issues, RestoreChoice Choice);
 
-/// <summary>ZIP 出力のプレビュー。CompareTo は比較元（なければ全件を新規として報告）、Candidates は選べる比較元。</summary>
-public sealed record ExportPreviewDisplay(
-    ReleaseKind Kind,
-    ReleaseBlocker Blocker,
-    ReleaseCandidate? CompareTo,
-    IReadOnlyList<ReleaseCandidate> Candidates,
-    IReadOnlyList<RevisionDisplay> Commits,
-    IReadOnlyList<ChangeDisplay> Changes,
-    IReadOnlyList<ChangeDisplay> UncommittedChanges,
-    IReadOnlyList<IssueDisplay> Issues,
-    bool NeedsDraftSave,
-    bool NeedsApproval);
-
-public enum ExportAction { Export, ChangeCompareTo, Cancel }
-
-/// <summary>出力プレビューへの回答。ChangeCompareTo なら CompareTo を比較元にしてプレビューし直す。</summary>
-public sealed record ExportDecision(ExportAction Action, ReleaseComparison? CompareTo = null);
-
-public sealed record PendingExportDisplay(Guid OperationId, ReleaseKind Kind, string Name, DateTimeOffset CreatedAt, string Stage);
-
-public sealed record PendingExportsDisplay(IReadOnlyList<PendingExportDisplay> Exports, IReadOnlyList<PendingExportProblem> Problems);
-
-/// <summary>確定保存・出力の前に承認を求める警告と、短い変更理由（null でなければその文字数）。</summary>
-public sealed record ConfirmationRequest(IReadOnlyList<IssueDisplay> Warnings, int? ShortReasonLength);
-
-public enum DataOperation { SaveDraft, Discard, Commit, Restore, ExportTest, ExportRelease, ResumeExport, ExportUncovered, Publish }
+public enum DataOperation { SaveDraft, Discard, Restore, ExportUncovered, Publish }
 
 /// <summary>
 /// 全件検証などの進捗。Operation が null なら「検証」、それ以外はその操作の中の検証・書出し。
@@ -139,4 +110,5 @@ public sealed record OperationDisplay(
 {
     /// <summary>業務上の前提を満たさずに止めた理由（表示言語の文言は View が決める）。</summary>
     public OperationReason? Reason { get; init; }
+    public string? FixedPublicationMetadata { get; init; }
 }

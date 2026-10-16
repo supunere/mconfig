@@ -57,7 +57,7 @@
 
 {0}</value></data>
   <data name="Startup_ReadOnlyNotice" xml:space="preserve"><value>別のアプリがこのワークスペースを編集しているため、読み取り専用で開きます。</value></data>
-  <data name="Startup_InvalidDataReadOnly" xml:space="preserve"><value>読み込んだデータに構造または参照の誤り（仕様にない条件、スキーマのないカテゴリなど）があるため、読み取り専用で開きます。「変更の確認」で「検証」を実行して該当箇所を確認し、アプリを終了してから元のデータを直してください。</value></data>
+  <data name="Startup_InvalidDataReadOnly" xml:space="preserve"><value>読み込んだデータに構造または参照の誤り（仕様にない条件、スキーマのないカテゴリなど）があるため、読み取り専用で開きます。「発行」で「検証」を実行して該当箇所を確認し、アプリを終了してから元のデータを直してください。</value></data>
   <data name="Recovery_Title" xml:space="preserve"><value>ワークスペースの復元</value></data>
   <data name="Recovery_Message" xml:space="preserve"><value>ワークスペースのデータが壊れているため、開けません。
 
@@ -119,7 +119,6 @@
 終了する前に保存しますか？「保存しない」を選ぶと、{0} 件の変更は失われます。</value></data>
   <data name="Leave_Save" xml:space="preserve"><value>保存(&amp;S)</value></data>
   <data name="Leave_Discard" xml:space="preserve"><value>保存しない(&amp;N)</value></data>
-  <data name="Leave_UncommittedExit" xml:space="preserve"><value>履歴に残していない変更があります。変更は保存されていて、次回起動時にも残ります。終了しますか？</value></data>
   <data name="Leave_Busy" xml:space="preserve"><value>保存・出力などの処理中です。完了してからもう一度操作してください。</value></data>
   <data name="Data_SaveGroup" xml:space="preserve"><value>保存</value></data>
   <data name="Data_Validate" xml:space="preserve"><value>検証</value></data>
@@ -148,15 +147,9 @@
   <data name="Data_ReloadHistory" xml:space="preserve"><value>最新の履歴を表示</value></data>
   <data name="Data_MoreHistory" xml:space="preserve"><value>さらに読み込む</value></data>
   <data name="Data_Restore" xml:space="preserve"><value>このバージョンに戻す</value></data>
-  <data name="Data_ExportGroup" xml:space="preserve"><value>出力</value></data>
-  <data name="Data_ExportTest" xml:space="preserve"><value>テスト版を出力</value></data>
-  <data name="Data_ExportRelease" xml:space="preserve"><value>リリース版を出力</value></data>
-  <data name="Data_Pending" xml:space="preserve"><value>中断した出力:</value></data>
-  <data name="Data_Resume" xml:space="preserve"><value>再開</value></data>
   <data name="Data_ColName" xml:space="preserve"><value>名前</value></data>
   <data name="Data_ColStage" xml:space="preserve"><value>段階</value></data>
   <data name="Confirm_Title" xml:space="preserve"><value>確認</value></data>
-  <data name="Confirm_Warnings" xml:space="preserve"><value>次の点を確認してください。</value></data>
   <data name="Confirm_ShortReason" xml:space="preserve"><value>変更理由が {0} 文字です（{1} 文字以上を推奨します）。何を・なぜ変えたかが後から分かるようにすることをおすすめします。</value></data>
   <data name="Confirm_Proceed" xml:space="preserve"><value>このまま続けますか？</value></data>
   <data name="Restore_Title" xml:space="preserve"><value>バージョンの復元</value></data>
@@ -165,29 +158,9 @@
   <data name="Restore_Choice_RestoreByDiscarding" xml:space="preserve"><value>未発行の変更があります。復元するとその変更は置き換わります（現在のファイルは復旧用の領域に退避されます）。</value></data>
   <data name="Restore_Choice_SaveOrDiscardFirst" xml:space="preserve"><value>保存していない編集があるため、いまは復元できません。先に保存するか、編集を破棄してください。</value></data>
   <data name="Restore_Choice_Unavailable" xml:space="preserve"><value>このバージョンは復元できません（内容に問題があるか、保存中・読み取り専用・復旧待ちです）。</value></data>
-  <data name="Export_Run" xml:space="preserve"><value>出力する</value></data>
-  <data name="Export_CompareLabel" xml:space="preserve"><value>比較元:</value></data>
-  <data name="Export_ChangeCompareTo" xml:space="preserve"><value>比較元を変更</value></data>
-  <data name="Export_CompareTo" xml:space="preserve"><value>比較元: {0}（{1} に公開）</value></data>
-  <data name="Export_NoCompareTo" xml:space="preserve"><value>比較元なし（すべてを新規として報告）</value></data>
-  <data name="Export_Summary" xml:space="preserve"><value>含まれる保存: {0} 件、変更: {1} 件</value></data>
-  <data name="Export_Uncommitted" xml:space="preserve"><value>履歴に残していない変更 {0} 件も含まれます。</value></data>
-  <data name="Export_NeedsDraftSave" xml:space="preserve"><value>出力の前に、現在の編集を保存します。</value></data>
-  <data name="Export_ApproveWarnings" xml:space="preserve"><value>出力すると、上の警告を確認したものとして扱います。</value></data>
-  <data name="Export_Blocker_ReadOnly" xml:space="preserve"><value>読み取り専用で開いているため出力できません。</value></data>
-  <data name="Export_Blocker_RecoveryPending" xml:space="preserve"><value>復旧待ちのため出力できません。アプリを再起動して復旧してください。</value></data>
-  <data name="Export_Blocker_Saving" xml:space="preserve"><value>保存中のため出力できません。完了してからもう一度操作してください。</value></data>
-  <data name="Export_Blocker_UncommittedChanges" xml:space="preserve"><value>履歴に残していない変更があるため、リリース版を出力できません。先に「履歴に残す」を実行してください。</value></data>
-  <data name="Export_Blocker_NoCommit" xml:space="preserve"><value>まだ履歴に残したバージョンがないため、リリース版を出力できません。先に「履歴に残す」を実行してください。</value></data>
-  <data name="Export_Blocker_ValidationErrors" xml:space="preserve"><value>内容にエラーがあるため出力できません。データ管理で検証結果を確認してください。</value></data>
   <data name="Operation_SaveDraft" xml:space="preserve"><value>保存</value></data>
   <data name="Operation_Discard" xml:space="preserve"><value>編集の破棄</value></data>
-  <data name="Operation_Commit" xml:space="preserve"><value>履歴に残す</value></data>
   <data name="Operation_Restore" xml:space="preserve"><value>復元</value></data>
-  <data name="Operation_ExportTest" xml:space="preserve"><value>テスト版の出力</value></data>
-  <data name="Operation_ExportRelease" xml:space="preserve"><value>リリース版の出力</value></data>
-  <data name="Operation_ResumeExport" xml:space="preserve"><value>出力の再開</value></data>
-  <data name="Result_Committed" xml:space="preserve"><value>履歴に残しました。</value></data>
   <data name="Result_DraftSaved" xml:space="preserve"><value>保存しました（まだ履歴には残していません）。</value></data>
   <data name="Result_Discarded" xml:space="preserve"><value>編集を破棄し、最後に保存した内容に戻しました。</value></data>
   <data name="Result_Restored" xml:space="preserve"><value>バージョンを復元しました。内容を確認し、必要に応じて「発行」を実行してください。</value></data>
@@ -331,8 +304,6 @@
   <data name="Data_UncommittedGroupCount" xml:space="preserve"><value>前回の発行からの変更（{0} 件）</value></data>
   <data name="Data_UncommittedUnavailable" xml:space="preserve"><value>前回の発行内容を読めませんでした</value></data>
   <data name="Data_Author" xml:space="preserve"><value>作成者: {0}（Windows のユーザー名）</value></data>
-  <data name="Data_CommitBlocked" xml:space="preserve"><value>エラーが {0} 件あるため履歴に残せません。検証結果から該当箇所へ移って直してください。</value></data>
-  <data name="Data_NothingToCommit" xml:space="preserve"><value>前回の発行から変更はありません。</value></data>
   <data name="Data_RevisionChanges" xml:space="preserve"><value>選択中のバージョンの変更</value></data>
   <data name="Data_CompareWithCurrent" xml:space="preserve"><value>現在との違い...</value></data>
   <data name="Data_CompareWithCurrentTitle" xml:space="preserve"><value>現在との違い</value></data>
@@ -363,10 +334,6 @@
   <data name="Reason_ReleaseNeedsCommittedHead" xml:space="preserve"><value>未確定の変更があるか、履歴に残したバージョンがありません。先に履歴に残してください。</value></data>
   <data name="Reason_ChangedAfterPreview" xml:space="preserve"><value>プレビューの後に内容が変わりました。もう一度プレビューで確認してください。</value></data>
   <data name="Reason_FilesChangedOutside" xml:space="preserve"><value>ワークスペースのファイルが、このアプリの外で変更されています。アプリを起動し直して読み込み直してください。</value></data>
-  <data name="Export_PendingProblem_DamagedJournal" xml:space="preserve"><value>出力の記録が壊れているため、完了を確認できず再開できません。復旧用のファイルは残っています。記録を保全し、管理者に復旧を依頼してください。</value></data>
-  <data name="Export_PendingProblem_UnreadableJournal" xml:space="preserve"><value>出力の記録を読み取れないため、完了を確認できず再開できません。記録の場所とアクセス権を確認し、出力画面を開き直してください。</value></data>
-  <data name="Export_PendingProblem_ListUnavailable" xml:space="preserve"><value>中断した出力の一覧を読み取れませんでした。表示されていない未完了の出力がある可能性があります。復旧フォルダの場所とアクセス権を確認し、出力画面を開き直してください。</value></data>
-  <data name="Export_OperationId" xml:space="preserve"><value>操作ID: {0}</value></data>
   <data name="Tool_Save" xml:space="preserve"><value>保存</value></data>
   <data name="Tool_SaveTip" xml:space="preserve"><value>保存 (Ctrl+S)。設定が完成したら「発行」で配布用ZIPを作成できます。</value></data>
   <data name="Tool_Changes" xml:space="preserve"><value>● {0} 件の変更</value></data>
@@ -374,18 +341,7 @@
   <data name="Status_NoErrors" xml:space="preserve"><value>✓ エラーなし</value></data>
   <data name="Combination_Title" xml:space="preserve"><value>組み合わせ</value></data>
   <data name="History_CurrentChanges" xml:space="preserve"><value>現在の変更</value></data>
-  <data name="History_CurrentChangeCount" xml:space="preserve"><value>履歴からの変更 {0} 件</value></data>
   <data name="History_ValidationPending" xml:space="preserve"><value>検証結果は未確定です。検証結果を確認してください。</value></data>
-  <data name="History_ValidationStale" xml:space="preserve"><value>内容が変わったため、再検証が必要です。</value></data>
-  <data name="History_ValidationSummary" xml:space="preserve"><value>検証結果: エラー {0} 件 / 警告 {1} 件</value></data>
-  <data name="Output_Choose" xml:space="preserve"><value>何を作成しますか？</value></data>
-  <data name="Output_TestTitle" xml:space="preserve"><value>テスト版</value></data>
-  <data name="Output_ReleaseTitle" xml:space="preserve"><value>リリース版</value></data>
-  <data name="Output_TestDescription" xml:space="preserve"><value>動作確認用の ZIP を作成します。出力内容と変更点を確認してから実行できます。</value></data>
-  <data name="Output_ReleaseDescription" xml:space="preserve"><value>正式な配布用の ZIP を作成します。検証結果と変更内容を確認してから実行します。</value></data>
-  <data name="Output_PendingTitle" xml:space="preserve"><value>未完了の出力</value></data>
-  <data name="Output_NoPending" xml:space="preserve"><value>未完了の出力はありません。</value></data>
-  <data name="Output_PendingNeedsAttention" xml:space="preserve"><value>再開できる出力はありません。下の復旧情報を確認してください。</value></data>
   <data name="Comparison_EditHint" xml:space="preserve"><value>ダブルクリックまたはF2で編集できます。</value></data>
   <data name="Assignment_RulesCaption" xml:space="preserve"><value>{0}の割り当てルール</value></data>
   <data name="Assignment_PresetsCaption" xml:space="preserve"><value>{0}のプリセット管理</value></data>
@@ -401,5 +357,11 @@
   <data name="Publish_Succeeded" xml:space="preserve"><value>設定を発行し、履歴に残しました。
 ZIPファイル: {0}</value></data>
   <data name="Operation_Publish" xml:space="preserve"><value>設定の発行</value></data>
+  <data name="Publish_CurrentVersion" xml:space="preserve"><value>このバージョンのZIPを作成</value></data>
+  <data name="Publish_CurrentHint" xml:space="preserve"><value>変更がないため、履歴を追加せずZIPを用意します。</value></data>
+  <data name="Publish_CurrentSucceeded" xml:space="preserve"><value>このバージョンのZIPを用意しました。
+ZIPファイル: {0}</value></data>
+  <data name="Reason_ExistingVersionExported" xml:space="preserve"><value>新しい履歴は追加していません。</value></data>
+  <data name="Publish_FixedMetadata" xml:space="preserve"><value>中断前にZIPの作成が完了していたため、その発行を完了しました。発行理由・作者は作成時の内容です: {0}</value></data>
 </root>
 

@@ -76,7 +76,24 @@ public sealed class ZipReleaseArchive : IReleaseArchive
             return await Task.Run(() =>
             {
                 // 同じ操作IDの二度目の実行は、記録した入力で続きを行う
-                if (ExportJournal.Load(Layout, request.OperationId) is { } existing) return Continue(existing);
+                if (ExportJournal.Load(Layout, request.OperationId) is { } existing)
+                {
+                    if (request.PreparedRevision is { } revised && existing.Target != revised.Value)
+                    {
+                        if (IsPublicationFixed(request.OperationId))
+                            throw new WorkspaceConflictException("Published metadata cannot be replaced.");
+                        // 未公開の操作に属するタグだけを差し替える。完成済みの出力には触れない。
+                        string? tagged = TagTarget(existing.Name);
+                        if (tagged is not null)
+                        {
+                            if (tagged != existing.Target) throw new WorkspaceConflictException("The prepared tag was changed outside the application.");
+                            _repository.WithRepository(repo => { repo.Tags.Remove(existing.Name); return true; });
+                        }
+                        existing = existing with { Target = revised.Value, Stage = ExportStage.Prepared, ZipSha256 = null };
+                        existing.Save(Layout);
+                    }
+                    return Continue(existing);
+                }
 
                 (ReleasePlan plan, IReadOnlyDictionary<string, byte[]> files) = Plan(request.Kind, request.Stamp, request.CompareTo, preparedRevision: request.PreparedRevision);
                 cancellationToken.ThrowIfCancellationRequested();
@@ -109,6 +126,18 @@ public sealed class ZipReleaseArchive : IReleaseArchive
         {
             _gate.Release();
         }
+    }
+
+    internal bool IsCompletedOutputMissing(Guid operationId)
+    {
+        ExportJournal? journal = ExportJournal.Load(Layout, operationId);
+        return journal is null || journal is { Stage: ExportStage.Completed } && !File.Exists(journal.FinalPath(Layout));
+    }
+
+    internal bool IsPublicationFixed(Guid operationId)
+    {
+        ExportJournal? journal = ExportJournal.Load(Layout, operationId);
+        return journal is not null && (journal.Stage is ExportStage.Published or ExportStage.Completed || File.Exists(journal.FinalPath(Layout)));
     }
 
     public async Task<ReleaseOutput> ResumeAsync(Guid operationId, CancellationToken cancellationToken)

@@ -15,9 +15,6 @@ public interface ILeaveConfirmationView
     /// <summary>未保存の編集がある。一時保存・破棄・キャンセルを尋ねる。</summary>
     UnsavedChoice AskUnsaved(LeaveKind kind);
 
-    /// <summary>終了時に、未確定（履歴に保存していない）の変更があることを知らせ、終了してよいか尋ねる。</summary>
-    bool ConfirmExitWithUncommitted();
-
     /// <summary>保存中・出力中などで、いまは離れられないことを知らせる。</summary>
     void ShowBusy();
 
@@ -26,9 +23,9 @@ public interface ILeaveConfirmationView
 
 /// <summary>
 /// タブ移動と終了の確認。未保存（E≠W）なら一時保存・破棄・キャンセルを尋ね、一時保存や破棄が失敗したら離れない。
-/// 終了時は未確定（W≠C）を未保存と別に知らせる。保存・出力などの実行中は離れない。UI スレッドから呼び、待機後も同じ文脈で View を呼ぶ。
+/// 保存済みの未発行設定は作業途中として終了を許可する。保存・出力などの実行中は離れない。UI スレッドから呼び、待機後も同じ文脈で View を呼ぶ。
 /// </summary>
-public sealed class LeaveGuard(EditSession session, SaveDraftHandler save, DiscardEditsHandler discard, ILeaveConfirmationView view, bool warnOnUncommitted = true)
+public sealed class LeaveGuard(EditSession session, SaveDraftHandler save, DiscardEditsHandler discard, ILeaveConfirmationView view)
 {
     public async Task<bool> CanLeaveAsync(LeaveKind kind)
     {
@@ -58,6 +55,6 @@ public sealed class LeaveGuard(EditSession session, SaveDraftHandler save, Disca
             status = session.Status;
         }
 
-        return !warnOnUncommitted || kind != LeaveKind.Exit || !status.HasUncommittedChanges || view.ConfirmExitWithUncommitted();
+        return true;
     }
 }

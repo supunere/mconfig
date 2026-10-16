@@ -18,9 +18,8 @@ public sealed class PublishWorkspaceHandler(EditSession session, IWorkspaceStore
         Guid operation = Guid.NewGuid();
         SessionSnapshot snapshot = session.Capture();
         if (WorkspaceChecks.CheckWritable(snapshot, command.ExpectedVersion, operation) is { } stopped) return stopped;
-        if (snapshot.Edited == snapshot.Working && snapshot.Working == snapshot.Committed)
-            return WorkspaceChecks.Stop(snapshot, OperationStatus.NoChanges, operation);
-        ValidationCode? reason = CommitReason.Check(command.Reason);
+        bool existingVersion = snapshot.Head is not null && snapshot.Edited == snapshot.Working && snapshot.Working == snapshot.Committed;
+        ValidationCode? reason = existingVersion ? null : CommitReason.Check(command.Reason);
         if (reason == ValidationCode.ReasonEmpty)
             return WorkspaceChecks.Stop(snapshot, OperationStatus.ValidationFailed, operation,
                 [new ValidationIssue(ValidationCode.ReasonEmpty, new(""), [])]);
@@ -43,10 +42,11 @@ public sealed class PublishWorkspaceHandler(EditSession session, IWorkspaceStore
         {
             // 書込開始後は取消しない。ZIPと履歴の確定が終わるまで編集も受け付けない。
             PublicationOutcome output = await publications.PublishAsync(
-                new(command.Reason, command.Author, operation, plan.Head, saved!), CancellationToken.None).ConfigureAwait(false);
+                new(command.Reason, command.Author, operation, plan.Head, saved!, existingVersion), CancellationToken.None).ConfigureAwait(false);
             session.CompleteCommit(plan, output.Stamp, output.Revision);
             return new(OperationStatus.Succeeded, session.Status.Version, operation, OperationStage.Exported,
-                issues, snapshot.Edited, output.Revision, output.Path);
+                issues, snapshot.Edited, output.Revision, output.Path,
+                Reason: existingVersion ? OperationReason.ExistingVersionExported : null, FixedPublicationMetadata: output.FixedMetadata);
         }
         catch (Exception ex)
         {

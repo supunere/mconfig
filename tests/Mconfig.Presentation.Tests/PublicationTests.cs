@@ -34,7 +34,7 @@ public sealed class PublicationTests
             Assert.Contains(zip.Entries, e => e.FullName == "change_diff_report.txt");
             Assert.Contains(zip.Entries, e => e.FullName == "manifest.json");
         }
-        Assert.Equal(OperationStatus.NoChanges, (await f.PublishAsync()).Status);
+        Assert.Equal(OperationStatus.Succeeded, (await f.PublishAsync()).Status);
         Assert.Single(Directory.GetFiles(f.Layout.ExportsDirectory, "*.zip"));
         Assert.Single(await f.Revisions.GetHistoryAsync(100, null, default));
         f.ChangeRate("4000");
@@ -124,6 +124,121 @@ public sealed class PublicationTests
         Assert.False(Directory.Exists(f.Layout.ExportsDirectory));
     }
 
+    [Theory]
+    [InlineData("Recorded")]
+    [InlineData("ZipWritten")]
+    [InlineData("Tagged")]
+    public async Task RetryBeforePublicationUsesCorrectedReasonAndAuthor(string failure)
+    {
+        using var f = await Fixture.CreateAsync();
+        f.Failure = failure;
+        Assert.Equal(OperationStatus.TechnicalFailure, (await f.PublishAsync()).Status);
+        f.Failure = null;
+        var result = await f.Handler().HandleAsync(new("Corrected publication reason", "corrected-user", f.Session.Status.Version));
+        Assert.Equal(OperationStatus.Succeeded, result.Status);
+        var version = Assert.Single(await f.Revisions.GetHistoryAsync(100, null, default));
+        Assert.Equal("Corrected publication reason", version.Message);
+        Assert.Contains("corrected-user", version.Author);
+        using var zip = ZipFile.OpenRead(result.Output!);
+        using var reader = new StreamReader(zip.GetEntry("change_diff_report.txt")!.Open());
+        Assert.Contains("Corrected publication reason", await reader.ReadToEndAsync());
+        Assert.Single(Directory.GetFiles(f.Layout.ExportsDirectory, "*.zip"));
+    }
+
+    [Theory]
+    [InlineData("Published")]
+    [InlineData("BeforeHistory")]
+    public async Task RetryAfterZipPublicationExplainsFixedMetadata(string failure)
+    {
+        using var f = await Fixture.CreateAsync();
+        f.Failure = failure;
+        await f.PublishAsync();
+        f.Failure = null;
+        var result = await f.Handler().HandleAsync(new("Changed after ZIP completion", "new-user", f.Session.Status.Version));
+        Assert.Equal(OperationStatus.Succeeded, result.Status);
+        Assert.Contains("Publish tested configuration", result.FixedPublicationMetadata);
+        Assert.Equal("Publish tested configuration", Assert.Single(await f.Revisions.GetHistoryAsync(100, null, default)).Message);
+        Assert.Single(Directory.GetFiles(f.Layout.ExportsDirectory, "*.zip"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RecoveryRetentionCannotRemovePendingPublication(bool legacy)
+    {
+        using var f = await Fixture.CreateAsync();
+        f.Failure = "BeforeHistory";
+        await f.PublishAsync();
+        string marker = Directory.GetFiles(f.Layout.RecoveryDirectory, "publication.json", SearchOption.AllDirectories).Single();
+        if (legacy) File.Delete(marker); // b3cfd08 recorded the hash journal only.
+        Mconfig.Infrastructure.Persistence.Recovery.RecoveryRetention.Prune(f.Layout, keep: 0);
+        f.Failure = null;
+        await f.ReloadAsync();
+        var result = await f.PublishAsync();
+        Assert.Equal(OperationStatus.Succeeded, result.Status);
+        Assert.Single(Directory.GetFiles(f.Layout.ExportsDirectory, "*.zip"));
+        Assert.Single(await f.Revisions.GetHistoryAsync(100, null, default));
+        Mconfig.Infrastructure.Persistence.Recovery.RecoveryRetention.Prune(f.Layout, keep: 0);
+        Assert.Empty(Directory.GetFiles(f.Layout.RecoveryDirectory, "publication.json", SearchOption.AllDirectories));
+    }
+
+    [Fact]
+    public async Task ExistingLegacyHistoryCanProduceAndRecreateZipWithoutNewHistory()
+    {
+        using var f = await Fixture.CreateAsync();
+        // A legacy commit can use different JSON formatting from the current serializer.
+        string settings = f.Layout.FullPath(WorkspaceLayout.SettingsPath);
+        File.WriteAllText(settings, Newtonsoft.Json.Linq.JToken.Parse(File.ReadAllText(settings)).ToString(Newtonsoft.Json.Formatting.None));
+        // Construct a pre-upgrade workspace: a committed configuration, no issued ZIP.
+        var loaded = await f.Store.LoadAsync(default);
+        var committed = await f.Revisions.CommitAsync(new("Legacy saved configuration", "legacy-user", Guid.NewGuid(), null, loaded.Stamp), default);
+        await f.ReloadAsync();
+        Assert.False(f.Session.Status.HasUncommittedChanges);
+        var first = await f.Handler().HandleAsync(new("", "test", f.Session.Status.Version));
+        Assert.Equal(OperationStatus.Succeeded, first.Status);
+        Assert.Equal(OperationReason.ExistingVersionExported, first.Reason);
+        Assert.Equal(committed.Revision, Assert.Single(await f.Revisions.GetHistoryAsync(100, null, default)).Id);
+        var repeated = await f.PublishAsync();
+        Assert.Equal(first.Output, repeated.Output);
+        File.Delete(first.Output!);
+        var recreated = await f.PublishAsync();
+        Assert.Equal(OperationStatus.Succeeded, recreated.Status);
+        Assert.True(File.Exists(recreated.Output));
+        Assert.Single(Directory.GetFiles(f.Layout.ExportsDirectory, "*.zip"));
+        Assert.Single(await f.Revisions.GetHistoryAsync(100, null, default));
+    }
+
+    [Fact]
+    public async Task PublishInProgressRejectsEditingAndExit()
+    {
+        using var f = await Fixture.CreateAsync();
+        using var release = new ManualResetEventSlim();
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        f.BeforeHistory = () => { entered.SetResult(); if (!release.Wait(TimeSpan.FromSeconds(15))) throw new TimeoutException(); };
+        Task<OperationResult> publish = Task.Run(() => f.PublishAsync());
+        try
+        {
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.True(f.Session.IsRunningOperation);
+            Assert.Equal(CommandStatus.Rejected, new ChangePresetCellHandler(f.Session).Handle(new("memory", "メモリ・8GB構成", "modules", "moduleA",
+                "transferRateMTs", CellValue.FromNumberLiteral("3600"), f.Session.Status.Version)).Status);
+            var leave = new LeaveView();
+            var guard = new Mconfig.Presentation.Workspaces.LeaveGuard(f.Session, new(f.Session, f.Store), new(f.Session, f.Store), leave);
+            Assert.False(await guard.CanLeaveAsync(Mconfig.Presentation.Workspaces.LeaveKind.Exit));
+            Assert.True(leave.BusyShown);
+        }
+        finally { release.Set(); }
+        Assert.Equal(OperationStatus.Succeeded, (await publish).Status);
+    }
+
+    private sealed class LeaveView : Mconfig.Presentation.Workspaces.ILeaveConfirmationView
+    {
+        public bool BusyShown { get; private set; }
+        public Mconfig.Presentation.Workspaces.UnsavedChoice AskUnsaved(Mconfig.Presentation.Workspaces.LeaveKind kind) => throw new InvalidOperationException();
+        public void ShowBusy() => BusyShown = true;
+        public void ShowOperationResult(Mconfig.Presentation.DataManagement.OperationDisplay result) => throw new InvalidOperationException();
+    }
+
     private sealed class Fixture : IDisposable
     {
         public WorkspaceLayout Layout { get; }
@@ -134,6 +249,8 @@ public sealed class PublicationTests
         public ZipReleaseArchive Archive { get; }
         public EditSession Session { get; private set; } = null!;
         public string? Failure { get; set; }
+        public Action? BeforeHistory { get; set; }
+        public JsonWorkspaceStore Store => _store;
 
         private Fixture(WorkspaceLayout layout, WorkspaceLock editLock)
         {
@@ -150,7 +267,7 @@ public sealed class PublicationTests
 
         public PublishWorkspaceHandler Handler() => new(Session, _store, new GitPublicationStore(_repository, _editLock, Archive)
         {
-            BeforeHistoryCommit = () => { if (Failure == "BeforeHistory") throw new IOException("Injected history failure"); },
+            BeforeHistoryCommit = () => { BeforeHistory?.Invoke(); if (Failure == "BeforeHistory") throw new IOException("Injected history failure"); },
         });
         public Task<OperationResult> PublishAsync(CancellationToken cancellation = default) =>
             Handler().HandleAsync(new("Publish tested configuration", "test", Session.Status.Version), cancellation);

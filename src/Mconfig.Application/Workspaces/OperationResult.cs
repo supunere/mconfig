@@ -30,6 +30,7 @@ public enum OperationReason
 {
     /// <summary>復元の前に、未保存の変更の一時保存か破棄、または未コミットの変更の破棄の指定が要る。</summary>
     RestoreNeedsNoPendingChanges,
+    ExistingVersionExported,
     /// <summary>リリース版は、未確定の変更がなく確定版（HEAD）があるときだけ出力できる。</summary>
     ReleaseNeedsCommittedHead,
     /// <summary>プレビューの後に対象の内容が変わった。</summary>
@@ -57,7 +58,8 @@ public sealed record OperationResult(
     string? Output = null,
     string? Detail = null,
     string? Tag = null,
-    OperationReason? Reason = null);
+    OperationReason? Reason = null,
+    string? FixedPublicationMetadata = null);
 
 /// <summary>
 /// 確認付き警告の承認。対象内容の指紋と検証規則の版に紐付き、内容が変われば無効になる。

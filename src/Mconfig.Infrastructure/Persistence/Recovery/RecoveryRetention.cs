@@ -17,7 +17,23 @@ internal static class RecoveryRetention
     public static int Prune(WorkspaceLayout layout, int keep = KeepCompleted)
     {
         if (!Directory.Exists(layout.RecoveryDirectory)) return 0;
+        // b3cfd08の発行記録は操作フォルダー外にある。印のない旧記録も保守的に保護する。
+        HashSet<string> referenced = new(StringComparer.OrdinalIgnoreCase);
+        string publications = Path.Combine(layout.RecoveryDirectory, "publications");
+        try
+        {
+            if (Directory.Exists(publications))
+                foreach (string path in Directory.EnumerateFiles(publications, "*.json"))
+                {
+                    JObject journal = (JObject)JsonText.Parse(File.ReadAllBytes(path));
+                    if (!Guid.TryParse((string?)journal["OperationId"], out Guid id)) return 0;
+                    referenced.Add(id.ToString("N"));
+                }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or Newtonsoft.Json.JsonException)
+        { Log.Warning(ex, "Publication references could not be read; recovery copies were retained"); return 0; }
         string[] finished = Directory.EnumerateDirectories(layout.RecoveryDirectory)
+            .Where(d => !referenced.Contains(Path.GetFileName(d)) || File.Exists(Path.Combine(d, "publication.json")))
             .Where(IsFinished)
             .OrderByDescending(Directory.GetLastWriteTimeUtc)
             .ThenByDescending(d => d, StringComparer.Ordinal)
@@ -48,6 +64,7 @@ internal static class RecoveryRetention
             ("journal.json", state => state is "Completed" or "RolledBack"),
             ("commit.json", state => state is "Completed" or "NotCommitted"),
             ("export.json", stage => stage is "Completed"),
+            ("publication.json", state => state is "Completed"),
         ];
         bool any = false;
         foreach ((string file, Func<string, bool> done) in journals)
